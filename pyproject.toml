@@ -17,6 +17,9 @@ dev = ["pytest>=8"]
 [project.scripts]
 neurosync = "neurosync.__main__:main"
 
+[project.gui-scripts]
+neurosync-studio = "neurosync.ui.app:main"   # no console window on Windows
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

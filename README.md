@@ -6,9 +6,10 @@ Offline binaural-beat and ambient-sound studio for Windows. No telemetry, no acc
 
 ## Status
 
-Milestone 1 (this commit): domain model, audio engine, session/timer/fade, preset
-repository, WASAPI output, headless CLI. **Next:** PySide6 UI (sidebar / orb visualizer /
-mixer / top bar), system tray, first-launch headphone disclaimer, bundled rain/café samples.
+Milestone 1: domain model, audio engine, session/timer/fade, presets, WASAPI output, CLI.
+Milestone 2: full PySide6 UI + UX (see [docs/DESIGN.md](docs/DESIGN.md)): glass dark theme,
+band-driven accent, orb visualizer, glow sliders, tray, safety disclaimer, high contrast.
+**Next:** bundled rain/café samples, installer, verification on real Windows hardware.
 
 ## Layout
 
@@ -18,15 +19,16 @@ src/neurosync/
   engine/   OscillatorSource, SampleSource/noise, MixerEngine, LogFade   (pure NumPy)
   app/      Session (state/timer/fade), AudioGraphBuilder, PresetRepository, builtin presets
   infra/    AudioOutputDeviceManager, LowLatencyPlayer (sounddevice / WASAPI)
-  ui/       (placeholder)
+  ui/       PySide6 interface: theme, widgets, panels, overlays, main window
 ```
 
 ## Develop
 
 ```
 python -m venv .venv && .venv\Scripts\activate
-pip install -e ".[audio,dev]"
+pip install -e ".[audio,ui,dev]"
 pytest
+neurosync                      # launch the app
 neurosync --list-presets
 neurosync "Alpha Focus" --minutes 45 --fade 5
 ```

@@ -48,7 +48,7 @@ class MixerEngine:
 
     def render(self, frames: int) -> np.ndarray:
         mix = np.zeros((frames, 2), dtype=np.float32)
-        for ch in self.channels:
+        for ch in tuple(self.channels):  # UI swaps the list; never mutates it mid-render
             mix += ch.render(frames)
         ramp = np.linspace(self._master, self._target_master, frames, endpoint=False, dtype=np.float32)
         self._master = self._target_master

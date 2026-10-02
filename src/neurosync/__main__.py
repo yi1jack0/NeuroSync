@@ -1,5 +1,6 @@
-"""Headless entry point (UI arrives in the next milestone).
+"""Entry point. With no arguments, launches the desktop app.
 
+    neurosync                       # NeuroSync Studio UI
     neurosync --list-presets
     neurosync --list-devices
     neurosync "Alpha Focus" --minutes 45 --fade 5 [--device N]
@@ -36,7 +37,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{d.index:>3} {'*' if d.is_default else ' '} {d.name} [{d.hostapi}]")
         return 0
     if not args.preset:
-        ap.error("preset name required (see --list-presets)")
+        from .ui.app import main as run_ui
+        return run_ui()
 
     preset = next((p for p in repo.all() if p.name.lower() == args.preset.lower()), None)
     if preset is None:

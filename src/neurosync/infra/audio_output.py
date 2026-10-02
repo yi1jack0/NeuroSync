@@ -75,3 +75,32 @@ class LowLatencyPlayer:
             self._stream.stop()
             self._stream.close()
             self._stream = None
+
+
+class SimulatedPlayer:
+    """Silent stand-in that drives `render` in real time (no audio hardware/PortAudio).
+
+    Keeps timers, fades and the visualizer behaving exactly as with real output.
+    """
+
+    def __init__(self, render: Callable[[int], np.ndarray], sample_rate: int = SAMPLE_RATE,
+                 blocksize: int = 2048) -> None:
+        import threading
+        self._render, self._sr, self._bs = render, sample_rate, blocksize
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+
+    def _run(self) -> None:
+        import time
+        period = self._bs / self._sr
+        next_t = time.monotonic()
+        while not self._stop.is_set():
+            self._render(self._bs)
+            next_t += period
+            self._stop.wait(max(0.0, next_t - time.monotonic()))
+
+    def start(self) -> None:
+        self._thread.start()
+
+    def stop(self) -> None:
+        self._stop.set()
