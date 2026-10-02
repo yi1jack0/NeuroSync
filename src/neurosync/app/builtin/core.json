@@ -1,0 +1,27 @@
+[
+  {"name": "Alpha Focus", "band": "ALPHA", "icon": "focus", "category": "Focus",
+   "description": "10 Hz alpha on a 200 Hz carrier with soft pink noise.",
+   "channels": [
+     {"kind": "binaural", "name": "Binaural", "base_hz": 200, "beat_hz": 10, "volume": 0.45},
+     {"kind": "noise", "name": "Pink Noise", "variant": "pink", "volume": 0.25}]},
+  {"name": "Beta Concentration", "band": "BETA", "icon": "bolt", "category": "Focus",
+   "description": "18 Hz beta for alert, analytical work.",
+   "channels": [
+     {"kind": "binaural", "name": "Binaural", "base_hz": 220, "beat_hz": 18, "volume": 0.4},
+     {"kind": "noise", "name": "Brown Noise", "variant": "brown", "volume": 0.3}]},
+  {"name": "Delta Sleep", "band": "DELTA", "icon": "moon", "category": "Sleep",
+   "description": "2 Hz delta under deep brown noise.",
+   "channels": [
+     {"kind": "binaural", "name": "Binaural", "base_hz": 150, "beat_hz": 2, "volume": 0.35},
+     {"kind": "noise", "name": "Brown Noise", "variant": "brown", "volume": 0.4}]},
+  {"name": "Theta Meditation", "band": "THETA", "icon": "lotus", "category": "Meditate",
+   "description": "6 Hz theta for deep relaxation.",
+   "channels": [
+     {"kind": "binaural", "name": "Binaural", "base_hz": 180, "beat_hz": 6, "volume": 0.4},
+     {"kind": "noise", "name": "Pink Noise", "variant": "pink", "volume": 0.2}]},
+  {"name": "Gamma Creativity", "band": "GAMMA", "icon": "spark", "category": "Creativity",
+   "description": "40 Hz gamma for insight and creative flow.",
+   "channels": [
+     {"kind": "binaural", "name": "Binaural", "base_hz": 250, "beat_hz": 40, "volume": 0.35},
+     {"kind": "noise", "name": "Pink Noise", "variant": "pink", "volume": 0.2}]}
+]
