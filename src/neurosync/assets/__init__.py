@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from functools import lru_cache
 from importlib import resources
 
@@ -19,12 +19,14 @@ class AmbienceSound:
     loop_xfade_s: float = 2.0
     default_volume: float = 0.5
     duration_s: float = 0.0
+    license: str = ""
 
 
 @lru_cache(maxsize=1)
 def catalog() -> tuple[AmbienceSound, ...]:
     raw = resources.files(__package__).joinpath("ambience", "catalog.json").read_text("utf-8")
-    return tuple(AmbienceSound(**entry) for entry in json.loads(raw))
+    known = {f.name for f in fields(AmbienceSound)}   # tolerate newer catalog keys
+    return tuple(AmbienceSound(**{k: v for k, v in e.items() if k in known}) for e in json.loads(raw))
 
 
 def get_sound(sound_id: str) -> AmbienceSound:

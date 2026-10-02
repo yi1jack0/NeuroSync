@@ -93,5 +93,5 @@ app/settings.py   persisted preferences
 ```
 
 ## 9. Known gaps / next
-Rain & café sample files are not bundled (noise beds are generated); un-hide the sidebar on
+Only the Water ambience (river, sea) is bundled so far - rain & café still to come; un-hide the sidebar on
 narrow windows; installer (PyInstaller/MSIX); verify tray + WASAPI on real Windows.

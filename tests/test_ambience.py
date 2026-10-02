@@ -88,3 +88,17 @@ def test_preset_with_asset_channel_builds_and_renders():
 def test_unknown_asset_raises():
     with pytest.raises(ValueError):
         get_sound("nope")
+
+
+def test_every_builtin_preset_builds_and_makes_sound():
+    from neurosync.app.presets import PresetRepository
+    names = set()
+    for preset in PresetRepository().builtin():
+        names.add(preset.name)
+        mixer = AudioGraphBuilder().build(preset, master_volume=0.5)
+        mixer.render(4800)
+        assert np.abs(mixer.render(SAMPLE_RATE // 2)).max() > 0.01, preset.name
+        for ch in preset.channels:                       # every asset reference resolves
+            if ch.path.startswith(ASSET_PREFIX):
+                get_sound(ch.path[len(ASSET_PREFIX):])
+    assert {"River Focus", "Seaside Meditation", "Deep River Sleep", "Ocean Night"} <= names

@@ -92,6 +92,13 @@ def main() -> None:
     shot(w, "06-high-contrast")
     w.transport.stop(); w._release_player(); w.deleteLater()
 
+    # 8. Bundled Water ambience: Seaside Meditation playing
+    w = make(tmp, last_preset="Seaside Meditation", master_volume=0.5)
+    w.toggle_play(); pump(1.2)
+    print("add-sound menu:", [a.text() for a in w.mixer.add_btn.menu().actions() if a.text() or a.isSeparator()])
+    shot(w, "08-seaside-meditation")
+    w.transport.stop(); w._release_player(); w.deleteLater()
+
     # 7. Theta + shortcuts overlay
     w = make(tmp, last_preset="Theta Meditation")
     w.help.open(); pump(0.4)
