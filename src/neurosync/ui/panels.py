@@ -508,7 +508,7 @@ class ChannelStrip(QFrame):
 
 class MixerPanel(QFrame):
     channelChanged = Signal(int, dict)
-    addRequested = Signal(str)          # "pink" | "brown" | "white" | "file" | "binaural"
+    addRequested = Signal(str)          # "pink"|"brown"|"white"|"file"|"binaural"|"asset:<id>"
     removeRequested = Signal(int)
     saveRequested = Signal(str)
 
@@ -554,6 +554,15 @@ class MixerPanel(QFrame):
         for label, key, ic in (("Pink noise", "pink", "noise"), ("Brown noise", "brown", "noise"),
                                ("White noise", "white", "noise")):
             menu.addAction(icon(ic, "#9AA3AF", 16), label, lambda k=key: self.addRequested.emit(k))
+        from ..assets import ASSET_PREFIX, catalog
+        category = None
+        for sound in catalog():                       # bundled ambience, grouped by category
+            if sound.category != category:
+                category = sound.category
+                menu.addSection(category)
+            act = menu.addAction(icon("wave", "#9AA3AF", 16), sound.name,
+                                 lambda sid=sound.id: self.addRequested.emit(ASSET_PREFIX + sid))
+            act.setToolTip(sound.description)
         menu.addSeparator()
         menu.addAction(icon("file", "#9AA3AF", 16), "Sound file (.wav, .ogg)…",
                        lambda: self.addRequested.emit("file"))
@@ -645,7 +654,8 @@ class MixerPanel(QFrame):
         for i, c in enumerate(preset.channels):
             if i == gen_index:
                 continue
-            ic = "noise" if c.kind == NOISE else ("wave" if c.kind == BINAURAL else "file")
+            ic = ("noise" if c.kind == NOISE else
+                  "wave" if c.kind == BINAURAL or c.path.startswith("asset:") else "file")
             s = ChannelStrip(c.name, ic, 0, 1, 0.01, c.volume, lambda v: f"{v * 100:.0f}%",
                              lambda v: f"{v * 100:.0f} percent", muted=c.muted, pan=c.pan,
                              removable=True)

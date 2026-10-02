@@ -7,12 +7,13 @@ name = "neurosync"
 version = "0.1.0"
 description = "NeuroSync Studio - tune your mind, master your focus."
 requires-python = ">=3.10"
-dependencies = ["numpy>=1.26"]
+dependencies = ["numpy>=1.26", "soundfile>=0.12"]   # soundfile decodes the bundled .ogg ambience
 
 [project.optional-dependencies]
-audio = ["sounddevice>=0.4.6", "soundfile>=0.12"]   # hardware output + ogg/wav ambient files
+audio = ["sounddevice>=0.4.6"]                      # hardware output (PortAudio / WASAPI)
 ui = ["PySide6>=6.6"]                               # desktop UI + system tray (next milestone)
 dev = ["pytest>=8"]
+assets = ["scipy>=1.11", "matplotlib>=3.8"]         # only to regenerate the bundled ambience (tools/ambience)
 
 [project.scripts]
 neurosync = "neurosync.__main__:main"
@@ -24,7 +25,7 @@ neurosync-studio = "neurosync.ui.app:main"   # no console window on Windows
 where = ["src"]
 
 [tool.setuptools.package-data]
-neurosync = ["app/builtin/*.json"]
+neurosync = ["app/builtin/*.json", "assets/ambience/*.ogg", "assets/ambience/catalog.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ..assets import ASSET_PREFIX
 from ..domain.models import BINAURAL, NOISE, SAMPLE, ChannelConfig, Preset
 from ..engine.mixer import MixerChannel, MixerEngine
 from ..engine.sources import AudioSource, OscillatorSource, SampleSource, noise_source
@@ -21,6 +22,8 @@ class AudioGraphBuilder:
             source = OscillatorSource(cfg.base_hz, cfg.beat_hz)
         elif cfg.kind == NOISE:
             source = noise_source(cfg.variant)
+        elif cfg.path.startswith(ASSET_PREFIX):          # bundled ambience, portable in presets
+            source = SampleSource.from_asset(cfg.path[len(ASSET_PREFIX):])
         else:
             source = SampleSource.from_file(cfg.path)
         return MixerChannel(cfg.name, source, cfg.volume, cfg.pan, cfg.muted,

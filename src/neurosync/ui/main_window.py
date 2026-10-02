@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (QApplication, QFileDialog, QHBoxLayout, QMainWind
                                QSystemTrayIcon, QVBoxLayout)
 
 from ..app.presets import PresetRepository
+from ..assets import ASSET_PREFIX, get_sound
 from ..app.session import SessionState
 from ..app.settings import Settings
 from ..app.transport import Transport
@@ -249,6 +250,9 @@ class MainWindow(QMainWindow):
             cfg = ChannelConfig(NOISE, NOISE_NAMES[key], variant=key, volume=0.3)
         elif key == "binaural":
             cfg = ChannelConfig(BINAURAL, "Binaural", volume=0.45)
+        elif key.startswith(ASSET_PREFIX):
+            sound = get_sound(key[len(ASSET_PREFIX):])
+            cfg = ChannelConfig(SAMPLE, sound.name, path=key, volume=sound.default_volume)
         else:
             path, _ = QFileDialog.getOpenFileName(self, "Add ambient sound", "",
                                                   "Audio (*.wav *.ogg *.flac)")

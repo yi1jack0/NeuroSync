@@ -1,8 +1,10 @@
 """Audio sources. Every source renders (frames, 2) float32 blocks."""
 from __future__ import annotations
 
+import io
 import wave
 from abc import ABC, abstractmethod
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -57,28 +59,90 @@ class OscillatorSource(AudioSource):
 
 
 class SampleSource(AudioSource):
-    """Loops a stereo buffer forever. Also the base for synthetic noise beds."""
+    """Loops a stereo buffer forever. Also the base for synthetic noise beds.
+
+    int16 buffers are kept as-is (half the RAM of float32) and converted per block;
+    float32 buffers are used directly.
+    """
 
     def __init__(self, buffer: np.ndarray) -> None:
         if buffer.ndim != 2 or buffer.shape[1] != 2 or len(buffer) == 0:
             raise ValueError("buffer must be shaped (n, 2) with n > 0")
-        self._buf = buffer.astype(np.float32, copy=False)
+        self._int16 = buffer.dtype == np.int16
+        self._buf = buffer if self._int16 else buffer.astype(np.float32, copy=False)
         self._pos = 0
 
     def read(self, frames: int) -> np.ndarray:
         n = len(self._buf)
-        idx = (self._pos + np.arange(frames)) % n
-        self._pos = (self._pos + frames) % n
-        return self._buf[idx]
+        end = self._pos + frames
+        if end <= n:                                   # common case: contiguous slice, no copy
+            block = self._buf[self._pos:end]
+            self._pos = end % n
+        else:
+            idx = (self._pos + np.arange(frames)) % n
+            block = self._buf[idx]
+            self._pos = end % n
+        return block.astype(np.float32) * (1.0 / 32768.0) if self._int16 else block.copy()
 
     @classmethod
-    def from_file(cls, path: str | Path, sample_rate: int = SAMPLE_RATE) -> "SampleSource":
+    def from_file(cls, path: str | Path, sample_rate: int = SAMPLE_RATE,
+                  loop_xfade_s: float = 1.0) -> "SampleSource":
         data, rate = _load_audio(Path(path))
-        if rate != sample_rate:  # linear resample; ambient beds tolerate it
-            x_new = np.linspace(0, len(data) - 1, int(len(data) * sample_rate / rate))
-            data = np.stack([np.interp(x_new, np.arange(len(data)), data[:, c])
-                             for c in range(2)], axis=1)
-        return cls(data)
+        data = make_loopable(data, int(loop_xfade_s * rate))
+        return cls(to_int16(resample_linear(data, rate, sample_rate)))
+
+    @classmethod
+    def from_asset(cls, sound_id: str, sample_rate: int = SAMPLE_RATE) -> "SampleSource":
+        """A bundled ambience (see neurosync.assets). Decoded once, shared read-only."""
+        return cls(_decode_asset(sound_id, sample_rate))
+
+
+def make_loopable(data: np.ndarray, xfade: int) -> np.ndarray:
+    """Equal-power crossfade of the tail into the head so wrap-around is click-free.
+
+    Returns n - xfade frames. Sample n-xfade-1 -> sample 0 are consecutive source
+    frames, so the seam is continuous; lossy-codec edge artifacts are hidden too.
+    """
+    n = len(data)
+    xfade = min(int(xfade), n // 2)
+    if xfade <= 0:
+        return data
+    t = (np.arange(xfade, dtype=np.float32) + 0.5) / xfade
+    out = data[: n - xfade].astype(np.float32, copy=True)
+    out[:xfade] = (data[:xfade] * np.sqrt(t)[:, None] + data[n - xfade:] * np.sqrt(1.0 - t)[:, None])
+    return out
+
+
+def resample_linear(data: np.ndarray, rate: int, target: int) -> np.ndarray:
+    if rate == target:
+        return data
+    x_new = np.linspace(0, len(data) - 1, int(len(data) * target / rate))
+    return np.stack([np.interp(x_new, np.arange(len(data)), data[:, c]) for c in range(2)],
+                    axis=1).astype(np.float32)
+
+
+def to_int16(data: np.ndarray) -> np.ndarray:
+    out = np.clip(np.rint(data * 32767.0), -32768, 32767).astype(np.int16)
+    out.setflags(write=False)
+    return out
+
+
+@lru_cache(maxsize=8)
+def _decode_asset(sound_id: str, sample_rate: int) -> np.ndarray:
+    from ..assets import get_sound, read_asset_bytes
+    sound = get_sound(sound_id)
+    data, rate = decode_bytes(read_asset_bytes(sound.file))
+    data = make_loopable(data, int(sound.loop_xfade_s * rate))
+    return to_int16(resample_linear(data, rate, sample_rate))
+
+
+def decode_bytes(raw: bytes) -> tuple[np.ndarray, int]:
+    """Decode ogg/flac/wav bytes to float32 (n, 2) + sample rate (needs soundfile)."""
+    import soundfile as sf
+    arr, rate = sf.read(io.BytesIO(raw), dtype="float32", always_2d=True)
+    if arr.shape[1] == 1:
+        arr = np.repeat(arr, 2, axis=1)
+    return arr[:, :2], rate
 
 
 def _load_audio(path: Path) -> tuple[np.ndarray, int]:
