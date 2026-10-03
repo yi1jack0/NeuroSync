@@ -17,8 +17,13 @@ export default defineConfig({
     launchOptions: { executablePath, args: ['--autoplay-policy=no-user-gesture-required'] },
   },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1360, height: 860 } }, grepInvert: /@phone/ },
-    { name: 'phone', use: { ...devices['Pixel 7'] }, grep: /@phone/ },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1360, height: 860 } }, grepInvert: /@phone/, testIgnore: /prod\.spec\.ts/ },
+    { name: 'phone', use: { ...devices['Pixel 7'] }, grep: /@phone/, testIgnore: /prod\.spec\.ts/ },
+    // Production build (service worker + CSP active), served by `vite preview`.
+    { name: 'prod', testMatch: /prod\.spec\.ts/, use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4173', serviceWorkers: 'allow' } },
   ],
-  webServer: { command: `npx vite --port ${PORT} --strictPort`, port: PORT, reuseExistingServer: true },
+  webServer: [
+    { command: `npx vite --port ${PORT} --strictPort`, port: PORT, reuseExistingServer: true },
+    { command: 'npm run build && npx vite preview --port 4173 --strictPort', port: 4173, reuseExistingServer: true, timeout: 180_000 },
+  ],
 });

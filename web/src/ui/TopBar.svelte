@@ -3,6 +3,8 @@
   import Icon from './Icon.svelte';
   import Popover from './Popover.svelte';
   import { fmtTime } from './format';
+  import { isIos, isStandalone, offlineSupported } from '../lib/offline';
+  const iosInstall = isIos() && !isStandalone();
 
   let timerOpen = $state(false), menuOpen = $state(false), deviceOpen = $state(false);
   let custom = $state(0);
@@ -54,9 +56,11 @@
   <span class="count mono" aria-live="off">{countdown}</span>
   <div class="spacer"></div>
 
-  <div class="offline hide-phone" title={app.offlineReady ? 'Everything is cached: works offline' : 'Caching for offline use…'}>
-    <i class:ready={app.offlineReady}></i><span>{app.offlineReady ? 'Offline ready' : 'Caching…'}</span>
-  </div>
+  {#if offlineSupported}
+    <div class="offline hide-phone" role="status" title={app.offlineReady ? 'Everything is cached: works offline' : 'Caching for offline use…'}>
+      <i class:ready={app.offlineReady}></i><span>{app.offlineReady ? 'Offline ready' : 'Caching…'}</span>
+    </div>
+  {/if}
   <button class="icon-btn hide-phone mutebtn" aria-label="Mute" aria-pressed={app.muted} onclick={() => app.toggleMute()} title="Mute (M)">
     <Icon name={app.muted ? 'mute' : 'volume'} /></button>
   <input class="master hide-phone" type="range" min="0" max="100" step="1" value={app.masterPct} style:--p="{app.masterPct}%"
@@ -104,6 +108,8 @@
       {#if app.settings.reduceMotion}<span class="check"><Icon name="check" size={16} /></span>{/if}</button>
     {#if app.installPrompt}
       <button class="menu-item" onclick={() => { menuOpen = false; void app.install(); }}><Icon name="install" />Install app</button>
+    {:else if iosInstall}
+      <button class="menu-item" onclick={() => { menuOpen = false; app.toast('To install: tap Share, then “Add to Home Screen”'); }}><Icon name="install" />Install on this iPhone</button>
     {/if}
     <div class="menu-sep"></div>
     <button class="menu-item" onclick={() => { menuOpen = false; app.dialog = 'shortcuts'; }}><Icon name="keyboard" />Keyboard shortcuts</button>

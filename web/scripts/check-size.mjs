@@ -7,7 +7,7 @@ const BUDGET = 70 * 1024;
 const dir = join(import.meta.dirname, '..', 'dist', 'assets');
 let total = 0;
 for (const f of readdirSync(dir)) {
-  if (!/\.(js|css)$/.test(f) || f.startsWith('workbox')) continue;
+  if (!/\.(js|css)$/.test(f)) continue;
   const gz = gzipSync(readFileSync(join(dir, f))).length;
   total += gz;
   console.log(`${(gz / 1024).toFixed(1).padStart(6)} KB  ${f}`);

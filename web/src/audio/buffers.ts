@@ -71,9 +71,3 @@ export function bufferFor(ctx: BaseAudioContext, cfg: ChannelConfig): Promise<Au
   }
   return p;
 }
-
-/** Warm the offline cache: fetch every bundled sound in this browser's format (no decode). */
-export async function prefetchAmbience(): Promise<void> {
-  const ext = preferredAmbienceExt();
-  await Promise.all(CATALOG.map((s) => fetch(`${base()}ambience/${s.file.replace(/\.ogg$/, '.' + ext)}`).catch(() => undefined)));
-}
