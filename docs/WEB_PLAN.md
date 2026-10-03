@@ -196,7 +196,7 @@ Mockups: `docs/screenshots/web-desktop.png`, `web-tablet.png`, `web-phone.png` (
 
 ## 10. Decisions needed from you
 
-1. **Framework:** Svelte 5 (recommended) or React?
+1. **Framework:** ✅ decided: **Svelte 5** (with TypeScript + Vite).
 2. **Hosting:** ✅ decided: Cloudflare Pages on **ejai.ai**. Still open: which address?
    - `neurosync.ejai.ai` (recommended): keeps the root domain free for anything else, and the app's offline cache and install scope stay cleanly separate.
    - `ejai.ai` itself, if the domain is dedicated to NeuroSync.
