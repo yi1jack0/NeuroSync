@@ -1,32 +1,46 @@
-# NeuroSync Web: going live on neurosync.ejai.ai
+# NeuroSync Web: going live on neurosync.ejai.ai (Cloudflare Workers)
 
-The app is a static site in `web/` (build output `web/dist`). Nothing is published until you do steps 1–3 below.
+The app is a static site in `web/` (build output `web/dist`). Nothing is published until you do steps 1–2 below.
 Your landing page on `ejai.ai` (Firebase Hosting, repo `ejacklab/ejai-landing-page`) is **not affected**: only the
 `neurosync` subdomain is added.
 
-## 1. Connect Cloudflare Pages (one time, about 5 minutes)
+## Hosting choice
 
-1. Open the Cloudflare dashboard, then go to **Workers & Pages → Create → Pages → Connect to Git**.
-2. Authorise GitHub and pick **`yi1jack0/NeuroSync`**.
-3. Enter the build settings:
+**Cloudflare Workers with static assets**, which Cloudflare recommends for new sites. Static files are free with no bandwidth cap, and the DNS for ejai.ai is already in the same account.
+
+The app has no server code; the Worker only serves files from `web/dist`. The config is in `web/wrangler.jsonc`, and it has been tested locally in Cloudflare's runtime (`wrangler dev`):
+- the security headers from `_headers` are applied
+- unknown paths serve the app
+- the sounds have correct types
+- the production e2e suite passes, including offline use
+
+## 1. Connect the repo (one time, about 5 minutes)
+
+1. In the Cloudflare dashboard, go to **Workers & Pages → Create → Import a repository** (Continue with GitHub), and allow access to **`yi1jack0/NeuroSync`**.
+2. Configure the project:
 
    | Setting | Value |
    |---|---|
-   | Production branch | the branch you release from (e.g. `main` once you merge) |
-   | Framework preset | None |
-   | Root directory | `web` |
+   | Project / Worker name | `neurosync`. Must match `"name"` in `web/wrangler.jsonc`. |
+   | Production branch | the branch you release from (recommended: `main`) |
+   | Root directory / path (under *Advanced*) | `web` |
    | Build command | `npm ci && npm run build` |
-   | Build output directory | `dist` |
-   | Environment variable | `NODE_VERSION` = `22` |
+   | Deploy command | `npx wrangler deploy` (the default) |
+   | Non-production branch deploy command | `npx wrangler versions upload` (the default: gives each branch a preview URL) |
 
-   The build reads the shared presets and sounds from `../src/neurosync/…`. That works because Cloudflare clones the whole repo.
-4. Click **Save and Deploy**. Every branch and pull request also gets a private preview URL (`<branch>.<project>.pages.dev`).
+   - Node 22 is pinned by `web/.node-version`.
+   - The build reads the shared presets and sounds from `../src/neurosync/…`. That works because the whole repo is cloned.
+3. Click **Deploy**. After 1–2 minutes the app is live at `https://neurosync.<your-subdomain>.workers.dev`. Try it on your phone and computer.
 
 ## 2. Attach the domain
 
-In the Pages project, go to **Custom domains → Set up a custom domain** and enter `neurosync.ejai.ai`.
+In the Worker, go to **Settings → Domains & Routes → Add → Custom domain** and enter `neurosync.ejai.ai`.
 
-Because ejai.ai already uses Cloudflare DNS, Cloudflare creates the `CNAME` record and the HTTPS certificate automatically, usually within minutes. The existing `ejai.ai` / `www` records are not touched.
+Because ejai.ai's DNS is in the same Cloudflare account, the DNS record and HTTPS certificate are created automatically. The landing page on `ejai.ai` (Firebase Hosting) is not touched.
+
+From then on, every push to the production branch redeploys, and every other branch or PR gets a preview URL.
+
+Optional local check before pushing: `cd web && npm run cf:dev`, which builds and serves the app on http://localhost:8787 with Cloudflare's runtime. Then run `PROD_URL=http://localhost:8787 npx playwright test --project=prod`.
 
 ## 3. Verify after the first deploy
 

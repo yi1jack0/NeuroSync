@@ -20,7 +20,7 @@ export default defineConfig({
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1360, height: 860 } }, grepInvert: /@phone/, testIgnore: /prod\.spec\.ts/ },
     { name: 'phone', use: { ...devices['Pixel 7'] }, grep: /@phone/, testIgnore: /prod\.spec\.ts/ },
     // Production build (service worker + CSP active), served by `vite preview`.
-    { name: 'prod', testMatch: /prod\.spec\.ts/, use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4173', serviceWorkers: 'allow' } },
+    { name: 'prod', testMatch: /prod\.spec\.ts/, use: { ...devices['Desktop Chrome'], baseURL: process.env.PROD_URL ?? 'http://localhost:4173', serviceWorkers: 'allow' } },
   ],
   webServer: [
     { command: `npx vite --port ${PORT} --strictPort`, port: PORT, reuseExistingServer: true },

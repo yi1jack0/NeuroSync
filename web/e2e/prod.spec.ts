@@ -1,6 +1,8 @@
 // Production build: offline after first visit, strict CSP with zero violations, installable.
 import { expect, test } from '@playwright/test';
 
+// PROD_URL lets the same suite run against `wrangler dev` (Cloudflare's runtime) or a live deploy.
+const ORIGIN = new URL(process.env.PROD_URL ?? 'http://localhost:4173').origin;
 const ACCEPTED = { masterVolume: 0.5, lastPreset: 'River Focus', disclaimerAccepted: true, fadeMinutes: 5, highContrast: false, reduceMotion: false, sinkId: '' };
 
 test('works fully offline after the first visit (incl. bundled ambience)', async ({ page, context }) => {
@@ -22,7 +24,7 @@ test('works fully offline after the first visit (incl. bundled ambience)', async
 
 test('strict CSP is active and the app makes no third-party requests', async ({ page, context }) => {
   const foreign: string[] = [];
-  page.on('request', (r) => { if (!r.url().startsWith('http://localhost:4173') && !r.url().startsWith('data:') && !r.url().startsWith('blob:')) foreign.push(r.url()); });
+  page.on('request', (r) => { if (!r.url().startsWith(ORIGIN) && !r.url().startsWith('data:') && !r.url().startsWith('blob:')) foreign.push(r.url()); });
   await context.addInitScript((s) => localStorage.setItem('neurosync.settings.v1', JSON.stringify(s)), ACCEPTED);
   await page.goto('/');
   const csp = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');

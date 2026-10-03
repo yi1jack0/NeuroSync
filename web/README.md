@@ -10,6 +10,12 @@ npm test             # unit tests (Vitest), incl. golden values from the Python 
 npm run check        # svelte-check / TypeScript, fails on warnings
 npm run build        # production build + 70 KB bundle budget  -> dist/
 npm run e2e          # Playwright: desktop, phone, production/offline (needs `npx playwright install chromium`)
+npm run cf:dev       # build + serve with Cloudflare's runtime (wrangler) on :8787
+```
+
+Hosting: Cloudflare Workers (static assets), configured in `wrangler.jsonc`. Cloudflare deploys it automatically on push (see `../docs/WEB_LAUNCH.md`).
+
+```
 ```
 
 | Path | What |

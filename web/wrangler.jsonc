@@ -1,0 +1,19 @@
+// Cloudflare Workers (static assets only: no server code runs).
+// Deployed by Cloudflare Workers Builds on every push; see ../docs/WEB_LAUNCH.md.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "neurosync",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    // Unknown paths serve the app shell (the service worker also handles offline navigation).
+    "not_found_handling": "single-page-application",
+    // Serve /index.html and /privacy.html as-is (no redirect to extension-less URLs):
+    // the service worker precaches those exact paths.
+    "html_handling": "none"
+  },
+  // Security headers come from dist/_headers (copied from public/_headers).
+  "observability": { "enabled": false },
+  "workers_dev": true,
+  "preview_urls": true
+}
