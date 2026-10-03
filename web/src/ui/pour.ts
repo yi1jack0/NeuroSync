@@ -50,15 +50,15 @@ export function makeNoise(seed: number, octaves = 4, warp = 4, warp2 = 3.5) {
 }
 
 /** Colour of the paint for height h (0..1): mostly Prussian, turquoise ribbons, a gold lace line. */
-function paint(h: number, detail: number): RGB {
+function paint(h: number, detail: number, soft = 1): RGB {
   let c = mix(P0, P1, smooth(0.18, 0.42, h));
   c = mix(c, P2, smooth(0.42, 0.6, h));
   c = mix(c, P3, smooth(0.6, 0.66, h) * (1 - smooth(0.7, 0.78, h)));
   const ribbon = smooth(0.6, 0.665, h) * (1 - smooth(0.69, 0.74, h));      // turquoise band
   c = mix(c, mix(T0, T1, detail), ribbon * 0.85);
-  const lace = Math.exp(-(((h - 0.7) / 0.0045) ** 2));                    // a thin iridescent gold line
+  const lace = Math.exp(-(((h - 0.7) / (0.0045 * soft)) ** 2));                    // a thin iridescent gold line
   c = mix(c, mix(G0, G1, detail * 0.35), lace * 0.55);
-  const lace2 = Math.exp(-(((h - 0.58) / 0.003) ** 2));                   // fainter secondary lacing
+  const lace2 = Math.exp(-(((h - 0.58) / (0.003 * soft)) ** 2));                   // fainter secondary lacing
   c = mix(c, T1, lace2 * 0.25);
   return c;
 }
@@ -69,11 +69,11 @@ function paint(h: number, detail: number): RGB {
  * the glossy sheen; a vignette keeps the edges dark for night use.
  */
 /** zoom > 1 magnifies the painting around its centre (same composition, larger and calmer flows). */
-export interface PourOptions { seed?: number; scale?: number; brightness?: number; octaves?: number; warp?: number; warp2?: number; zoom?: number }
+export interface PourOptions { seed?: number; scale?: number; brightness?: number; octaves?: number; warp?: number; warp2?: number; zoom?: number; soft?: number }
 export function renderPour(w: number, h: number, o: PourOptions = {}): ImageData {
   // Defaults chosen from side-by-side variants: calm, dark centre (orb + text sit on deep Prussian),
   // turquoise rivers and gold lacing toward the edges.
-  const { seed = 42, scale = 1.7, brightness = 0.78, octaves = 3, warp = 3.6, warp2 = 2.4, zoom = 1.6 } = o;
+  const { seed = 42, scale = 1.7, brightness = 0.78, octaves = 3, warp = 3.6, warp2 = 2.4, zoom = 1.6, soft = 1 } = o;
   const field = makeNoise(seed, octaves, warp, warp2);
   const img = new ImageData(w, h);
   const hts = new Float32Array((w + 2) * (h + 2));
@@ -96,7 +96,7 @@ export function renderPour(w: number, h: number, o: PourOptions = {}): ImageData
       // Blinn-Phong half vector with the viewer straight above: wet, glossy paint
       const hx = lx, hy = ly, hz = lz + 1, hl = Math.hypot(hx, hy, hz);
       const spec = Math.max(0, (nx * hx + ny * hy + nz * hz) / hl) ** 60;
-      let c = paint(v, (x + y) / (w + h));
+      let c = paint(v, (x + y) / (w + h), soft);
       const shade = 0.62 + 0.5 * diff;
       const u = x / w - 0.5, t = y / h - 0.5;
       const vig = 1 - Math.min(1, (u * u + t * t) * 1.5);
@@ -111,8 +111,15 @@ export function renderPour(w: number, h: number, o: PourOptions = {}): ImageData
 
 /** Square marble texture for the liquid orb (rotated slowly inside its glass shell). */
 export function marbleTexture(size: number, seed = 777): HTMLCanvasElement {
+  // Smooth, silky lines: fewer fine octaves, gentler warping, wider (soft) lacing, then a
+  // one-off blur so curves never look jagged when the texture is scaled up and rotated.
+  const raw = document.createElement('canvas');
+  raw.width = raw.height = size;
+  raw.getContext('2d')!.putImageData(renderPour(size, size, { seed, scale: 1.6, brightness: 1.15, octaves: 3, warp: 3.4, warp2: 2.8, zoom: 1.6, soft: 2.6 }), 0, 0);
   const c = document.createElement('canvas');
   c.width = c.height = size;
-  c.getContext('2d')!.putImageData(renderPour(size, size, { seed, scale: 1.6, brightness: 1.15, octaves: 4, warp: 4, warp2: 3.5, zoom: 1.6 }), 0, 0);
+  const ctx = c.getContext('2d')!;
+  ctx.filter = `blur(${Math.max(1, size / 360)}px)`;
+  ctx.drawImage(raw, 0, 0);
   return c;
 }

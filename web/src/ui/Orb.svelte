@@ -88,7 +88,7 @@
   /** Liquid theme: a pour "cell" — marbled paint swirling inside a glossy drop, casting a soft shadow. */
   function drawLiquid(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, breath: number, t: number,
                       band: [number, number, number]) {
-    marble ??= marbleTexture(320);
+    marble ??= marbleTexture(512);
     const e = energy;
     const sh = ctx.createRadialGradient(cx + r * 0.12, cy + r * 1.08, 0, cx + r * 0.12, cy + r * 1.08, r * 1.15);
     sh.addColorStop(0, 'rgba(0,0,0,0.5)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
