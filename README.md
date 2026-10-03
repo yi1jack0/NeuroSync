@@ -15,6 +15,10 @@ Milestone 5: **web version** (`web/`, Svelte 5 + Web Audio, offline PWA) for **n
 see [web/README.md](web/README.md) and the go-live steps in [docs/WEB_LAUNCH.md](docs/WEB_LAUNCH.md).
 **Next:** real-device checks (docs/WEB_LAUNCH.md §4), more ambience (rain, café).
 
+## Languages
+
+The **desktop app is English only** (product decision). The **web app** supports English and Simplified Chinese (简体中文): see `web/README.md`.
+
 ## Layout
 
 ```
