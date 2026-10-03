@@ -3,7 +3,7 @@
 
 :root {
   --bg: #121417; --bg-deep: #0B0C0E; --surface: #1A1D22;
-  --text: #E9ECF1; --dim: #9AA3AF; --faint: #6B7380;
+  --text: #E9ECF1; --dim: #9AA3AF; --faint: #858E9B;   /* >= 4.5:1 on the solid surface (WCAG AA) */
   --panel: rgba(255, 255, 255, .045); --panel-hover: rgba(255, 255, 255, .08);
   --line: rgba(255, 255, 255, .08); --line-top: rgba(255, 255, 255, .14);
   --danger: #FF6B7A; --ok: #3EE0A1;

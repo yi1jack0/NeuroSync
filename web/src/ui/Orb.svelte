@@ -27,7 +27,7 @@
     if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
-    energy += (target - energy) * (target > energy ? 0.05 : 0.025);
+    energy = motion ? energy + (target - energy) * (target > energy ? 0.05 : 0.025) : target;   // no easing under reduced motion
     const phase = playing && motion ? (((now - t0) / 1000) * pulse) % 1 : 0.25;
     const breath = 0.5 - 0.5 * Math.cos(2 * Math.PI * phase);
     const base = Math.min(w, h) * 0.2;

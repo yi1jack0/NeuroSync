@@ -18,9 +18,12 @@ function db(): Promise<IDBDatabase> {
 
 function tx<T>(store: Store, mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
   return db().then((d) => new Promise<T>((resolve, reject) => {
-    const r = fn(d.transaction(store, mode).objectStore(store));
-    r.onsuccess = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
+    const t = d.transaction(store, mode);
+    const r = fn(t.objectStore(store));
+    // Resolve on *commit*, not on request success: otherwise closing the tab right after
+    // "Saved" could still lose the write.
+    t.oncomplete = () => resolve(r.result);
+    t.onerror = t.onabort = () => reject(t.error ?? r.error);
   }));
 }
 
