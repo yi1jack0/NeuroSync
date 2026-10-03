@@ -41,7 +41,7 @@ Status: **proposal for review**. Mockups: `docs/screenshots/web-*.png`
 | Audio | **Web Audio API** (no library) | Everything needed is native: oscillators, gain ramps on the audio clock, sample-accurate looping. |
 | Offline | **vite-plugin-pwa** (Workbox) | Precaches the app shell; ambience is cached on first use. |
 | Tests | **Vitest** (unit) + **Playwright** (e2e, Chromium is preinstalled here) | Audio can be tested headlessly with `OfflineAudioContext` + FFT. |
-| Hosting | **GitHub Pages** via Actions (or any static host) | Free, HTTPS, no server. Publishing waits for your go-ahead. |
+| Hosting | **Cloudflare Pages** on your domain **ejai.ai** (registrar and DNS already at Cloudflare) | Free, automatic HTTPS, global CDN, a preview URL per branch. Static only, no server. Publishing waits for your go-ahead. |
 
 Repo layout: `web/` alongside the Python package.
 
@@ -192,11 +192,34 @@ Mockups: `docs/screenshots/web-desktop.png`, `web-tablet.png`, `web-phone.png` (
 | **3. Desktop layout UI** | Top bar, library, stage + orb, mixer strips, timer popover, toasts, disclaimer, shortcuts, theme + band accent. | The three workflows pass in e2e at desktop width. |
 | **4. Responsive + PWA** | Tablet drawer, phone tabs + mini transport, Media Session, service worker, install hint, offline indicator. | Offline e2e green; tested on a real iPhone and an Android phone. |
 | **5. Sharing + polish** | Share links, import/export, IndexedDB custom sounds, high-contrast/forced-colors, axe pass, perf budget. | Accessibility and performance budgets met. |
-| **6. Launch** | GitHub Pages deploy workflow, README, privacy statement ("nothing leaves your device"). | You approve publishing. |
+| **6. Launch** | Cloudflare Pages project connected to this repo (build `web/`, output `web/dist`); custom domain on ejai.ai; security headers (`_headers`: strict CSP, no third-party origins); README; privacy statement ("nothing leaves your device"). | You approve publishing. |
 
 ## 10. Decisions needed from you
 
 1. **Framework:** Svelte 5 (recommended) or React?
-2. **Hosting:** GitHub Pages under this repo (recommended; `https://<user>.github.io/NeuroSync/`) or your own domain?
+2. **Hosting:** ✅ decided: Cloudflare Pages on **ejai.ai**. Still open: which address?
+   - `neurosync.ejai.ai` (recommended): keeps the root domain free for anything else, and the app's offline cache and install scope stay cleanly separate.
+   - `ejai.ai` itself, if the domain is dedicated to NeuroSync.
+   - `ejai.ai/neurosync`: works, but is the most fiddly for an installable app.
 3. **Mobile priority:** should phones get full parity in v1 (as planned), or desktop browsers first with phones in v1.1? The lock-screen spike decides how hard phones are.
 4. **Ambience fallback:** OK to add AAC copies (~1.2 MB more in the repo/build), so Safari users get the sounds?
+
+## 11. Hosting setup (Cloudflare Pages + ejai.ai)
+
+Done by you in the Cloudflare dashboard when we reach Phase 6. Nothing is published before then.
+
+1. **Workers & Pages → Create → Pages → Connect to Git**, then pick `yi1jack0/NeuroSync`.
+2. Set the build options:
+   - root directory `web`
+   - build command `npm ci && npm run build`
+   - output `dist`
+   - production branch = whichever branch you choose to release from
+3. **Custom domains → Set up a custom domain** → e.g. `neurosync.ejai.ai`. Cloudflare creates the DNS record and certificate itself, because the domain is already in your account.
+4. Every other branch and every PR gets its own preview URL (`<branch>.<project>.pages.dev`). This lets us test on real phones before anything reaches ejai.ai.
+
+The repo will carry `web/public/_headers` with a strict Content-Security-Policy:
+- `default-src 'self'`, with no external origins
+- `Permissions-Policy` limited to what the app uses
+- long cache lifetimes for hashed assets and the ambience files
+
+The headers enforce the "nothing leaves your device" promise technically, not just in a privacy statement.
