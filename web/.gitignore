@@ -1,0 +1,6 @@
+node_modules/
+dist/
+src/generated/
+public/ambience/*.ogg
+test-results/
+playwright-report/
