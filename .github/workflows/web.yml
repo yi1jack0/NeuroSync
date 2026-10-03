@@ -1,0 +1,42 @@
+name: Web app
+
+on:
+  push:
+    paths: ["web/**", "src/neurosync/app/builtin/**", "src/neurosync/assets/**", "src/neurosync/domain/**", "src/neurosync/engine/**", "tools/export_golden.py", ".github/workflows/web.yml"]
+  pull_request:
+    paths: ["web/**", "src/neurosync/app/builtin/**", "src/neurosync/assets/**", "src/neurosync/domain/**", "src/neurosync/engine/**", "tools/export_golden.py", ".github/workflows/web.yml"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: web } }
+    steps:
+      - uses: actions/checkout@v4
+
+      # The web port must keep matching the desktop engine: regenerate golden values and fail on drift.
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Golden values unchanged
+        working-directory: .
+        run: |
+          pip install -e .
+          python tools/export_golden.py
+          git diff --exit-code web/src/domain/golden.json
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json }
+      - run: npm ci
+      - run: npm run sync
+      - name: Typecheck + Svelte checks
+        run: npx svelte-check --tsconfig ./tsconfig.json --fail-on-warnings
+      - name: Unit tests
+        run: npx vitest run
+      - name: Production build (+ bundle-size budget)
+        run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: End-to-end (desktop, phone, production/offline)
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright-results, path: web/test-results }

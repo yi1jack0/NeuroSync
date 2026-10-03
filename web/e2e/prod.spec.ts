@@ -39,3 +39,12 @@ test('web app manifest is valid for installation', async ({ request }) => {
   expect(m.icons.some((i: { sizes: string; purpose?: string }) => i.sizes === '512x512' && i.purpose === 'maskable')).toBe(true);
   for (const i of m.icons) expect((await request.get(i.src)).ok()).toBe(true);
 });
+
+test('privacy page is served and linked from the menu', async ({ page, context }) => {
+  await context.addInitScript((s) => localStorage.setItem('neurosync.settings.v1', JSON.stringify(s)), ACCEPTED);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await expect(page.getByRole('link', { name: /Privacy/ })).toHaveAttribute('href', '/privacy.html');
+  await page.goto('/privacy.html');
+  await expect(page.getByRole('heading', { name: 'Privacy' })).toBeVisible();
+});

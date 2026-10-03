@@ -2,7 +2,7 @@
 
 *Same product, same rules, in the browser. Offline-capable, no accounts, no tracking.*
 
-Status: **proposal for review**. Mockups: `docs/screenshots/web-*.png`
+Status: **built: phases 1–6 complete in code; launch waits on the Cloudflare connection and the real-device checks** (see `docs/WEB_LAUNCH.md`). Screenshots of the real app: `docs/screenshots/webapp-*.png`. Early mockups: `docs/screenshots/web-*.png`
 (source: `web/design/mockup.html`, a static, non-functional layout prototype).
 
 ---
@@ -223,3 +223,33 @@ The repo will carry `web/public/_headers` with a strict Content-Security-Policy:
 - long cache lifetimes for hashed assets and the ambience files
 
 The headers enforce the "nothing leaves your device" promise technically, not just in a privacy statement.
+
+## 12. As built: deviations from this plan
+
+| Planned | Built | Why |
+|---|---|---|
+| Noise via FFT in a Web Worker | Cheap recursive filters (pink: Kellet, brown: leaky integrator) + the same loop crossfade, on the main thread | About 20 ms per bed, so no worker needed. The loop crossfade keeps it seamless. |
+| `DynamicsCompressor` as the safety limiter | Compressor **plus** a `WaveShaper` ceiling that cannot exceed 0.85 | The tests showed the compressor alone let peaks reach 1.09. The ceiling now guarantees ≤ 0.85. |
+| Stop = Ctrl/⌘+Space | **Shift+Space** | ⌘+Space opens Spotlight on macOS. |
+| AAC fallback ~1.2 MB | 1.56 MB | AAC at 128 kb/s for noise-like beds. |
+| Settings in localStorage, presets in IndexedDB | As planned | Writes now resolve on commit: the tests caught a lost-save race. |
+| `_redirects` SPA rule | Not used | Cloudflare Pages already serves `index.html` for unknown paths, and a catch-all rule can shadow real files. |
+
+**Verified automatically** (CI: `.github/workflows/web.yml`):
+- 12 unit tests, including golden values from the Python engine
+- 30 Playwright tests in real Chromium, covering:
+  - the audio graph measured offline
+  - the three brief workflows
+  - the safety gate, keyboard use and band recolouring
+  - share/import/export, own sound files, delete and undo
+  - high contrast, reduced motion, axe scans on desktop and phone
+  - the phone media-element route
+  - full offline use, a strict CSP with zero third-party requests, and the install manifest
+- Bundle: 46.8 KB gzipped (budget 70 KB).
+
+**Not verifiable here:**
+- iPhone/Android lock-screen behaviour and the iOS silent switch
+- Safari codec choice on real devices
+- a screen-reader pass
+
+These are listed as a checklist in `docs/WEB_LAUNCH.md` §4.

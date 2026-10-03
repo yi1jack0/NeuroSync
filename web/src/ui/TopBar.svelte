@@ -114,6 +114,7 @@
     <div class="menu-sep"></div>
     <button class="menu-item" onclick={() => { menuOpen = false; app.dialog = 'shortcuts'; }}><Icon name="keyboard" />Keyboard shortcuts</button>
     <button class="menu-item" onclick={() => { menuOpen = false; app.dialog = 'disclaimer'; }}><Icon name="headphones" />Safety information</button>
+    <a class="menu-item" href="/privacy.html" target="_blank" rel="noopener"><Icon name="contrast" />Privacy: nothing leaves your device</a>
   </Popover>
 </header>
 

@@ -10,7 +10,10 @@ Milestone 1: domain model, audio engine, session/timer/fade, presets, WASAPI out
 Milestone 2: full PySide6 UI + UX (see [docs/DESIGN.md](docs/DESIGN.md)): glass dark theme,
 band-driven accent, orb visualizer, glow sliders, tray, safety disclaimer, high contrast.
 Milestone 3: bundled **Water** ambience (Gentle River, Deep River, Peaceful Sea Waves) +
-4 presets that use them. **Next:** more ambience (rain, café), installer, verification on real Windows hardware.
+4 presets that use them. Milestone 4: Windows installer (PyInstaller + Inno Setup, built in CI).
+Milestone 5: **web version** (`web/`, Svelte 5 + Web Audio, offline PWA) for **neurosync.ejai.ai**:
+see [web/README.md](web/README.md) and the go-live steps in [docs/WEB_LAUNCH.md](docs/WEB_LAUNCH.md).
+**Next:** real-device checks (docs/WEB_LAUNCH.md §4), more ambience (rain, café).
 
 ## Layout
 

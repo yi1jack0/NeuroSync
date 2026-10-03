@@ -99,6 +99,7 @@ input[type=range].vertical::-webkit-slider-thumb { margin-top: 0; margin-left: -
 .menu-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 12px;
   border-radius: 8px; background: none; border: 0; min-height: 40px; }
 .menu-item:hover, .menu-item:focus-visible { background: var(--accent-soft); outline: none; }
+a.menu-item { color: inherit; text-decoration: none; }
 .menu-item svg { width: 16px; height: 16px; color: var(--dim); }
 .menu-section { padding: 8px 12px 4px; font-size: 10.5px; font-weight: 700; letter-spacing: 1.4px; color: var(--faint); text-transform: uppercase; }
 .menu-sep { height: 1px; background: var(--line); margin: 5px 8px; }
