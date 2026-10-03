@@ -13,6 +13,7 @@ dependencies = ["numpy>=1.26", "soundfile>=0.12"]   # soundfile decodes the bund
 audio = ["sounddevice>=0.4.6"]                      # hardware output (PortAudio / WASAPI)
 ui = ["PySide6>=6.6"]                               # desktop UI + system tray (next milestone)
 dev = ["pytest>=8"]
+build = ["pyinstaller>=6.6"]                        # Windows packaging (packaging/)
 assets = ["scipy>=1.11", "matplotlib>=3.8"]         # only to regenerate the bundled ambience (tools/ambience)
 
 [project.scripts]

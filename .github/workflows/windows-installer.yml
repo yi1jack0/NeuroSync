@@ -1,0 +1,84 @@
+name: Windows installer
+
+# Builds NeuroSync-Setup-<version>.exe on a real Windows runner and smoke-tests it.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths: ["packaging/**", "pyproject.toml", ".github/workflows/windows-installer.yml"]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[audio,build,dev]"
+
+      - name: Unit tests
+        env: { QT_QPA_PLATFORM: offscreen }
+        run: pytest -q
+
+      - name: Generate icon + version info
+        env: { QT_QPA_PLATFORM: offscreen }
+        run: python packaging/make_assets.py
+
+      - name: Freeze with PyInstaller
+        run: pyinstaller packaging/neurosync.spec --noconfirm --clean
+
+      - name: Self-test the frozen app
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "selftest.txt"
+          $p = Start-Process dist\NeuroSync\NeuroSync.exe -ArgumentList "--selftest", $out -Wait -PassThru
+          Get-Content $out
+          if ($p.ExitCode -ne 0) { throw "frozen self-test failed" }
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $version = (python -c "import neurosync; print(neurosync.__version__)").Trim()
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "/DAppVersion=$version" packaging\installer.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
+
+      - name: Smoke-test the installer (silent install -> selftest -> uninstall)
+        shell: pwsh
+        run: |
+          $setup = "dist-installer\NeuroSync-Setup-$env:VERSION.exe"
+          $dir = Join-Path $env:RUNNER_TEMP "NeuroSyncInstall"
+          Start-Process $setup -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=`"$dir`"" -Wait
+          if (-not (Test-Path "$dir\NeuroSync.exe")) { throw "installer did not install NeuroSync.exe" }
+          $out = Join-Path $env:RUNNER_TEMP "installed-selftest.txt"
+          $p = Start-Process "$dir\NeuroSync.exe" -ArgumentList "--selftest", $out -Wait -PassThru
+          Get-Content $out
+          if ($p.ExitCode -ne 0) { throw "installed app self-test failed" }
+          Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES" -Wait
+          Start-Sleep -Seconds 3
+          if (Test-Path "$dir\NeuroSync.exe") { throw "uninstall left NeuroSync.exe behind" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NeuroSync-Setup-${{ env.VERSION }}
+          path: dist-installer/NeuroSync-Setup-*.exe
+          if-no-files-found: error
+
+      - name: Zip portable build
+        shell: pwsh
+        run: Compress-Archive -Path dist\NeuroSync -DestinationPath "NeuroSync-portable-$env:VERSION.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NeuroSync-portable-${{ env.VERSION }}
+          path: NeuroSync-portable-*.zip

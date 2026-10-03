@@ -52,3 +52,21 @@ python tools/ambience/build.py                  # re-render all -> assets/ambien
 
 Presets reference them portably as `"path": "asset:sea-calm"`. Loops are equal-power cross-faded
 at load time (click-free) and kept as int16 in RAM, shared between channels.
+
+## Windows installer
+
+```
+powershell -ExecutionPolicy Bypass -File packaging\build_windows.ps1
+```
+Freezes the app with PyInstaller (`packaging/neurosync.spec`, onedir), runs the packaged app's
+`--selftest` (bundled sounds, presets, codecs, PortAudio, Qt), then builds
+`dist-installer\NeuroSync-Setup-<version>.exe` with Inno Setup 6 (`packaging/installer.iss`):
+per-user install (no admin prompt), Start-menu shortcut, optional desktop shortcut, clean
+uninstall that asks before deleting your presets (`%APPDATA%\NeuroSync`).
+
+CI (`.github/workflows/windows-installer.yml`, run it from the Actions tab or push a `v*` tag)
+builds on a Windows runner, silently installs the result, self-tests the *installed* app and
+uninstalls, then uploads the installer and a portable zip as artifacts.
+
+The installer is **unsigned**, so Windows SmartScreen will warn on first run
+("More info -> Run anyway") until you buy a code-signing certificate.
