@@ -201,7 +201,7 @@ Mockups: `docs/screenshots/web-desktop.png`, `web-tablet.png`, `web-phone.png` (
    - `neurosync.ejai.ai` (recommended): keeps the root domain free for anything else, and the app's offline cache and install scope stay cleanly separate.
    - `ejai.ai` itself, if the domain is dedicated to NeuroSync.
    - `ejai.ai/neurosync`: works, but is the most fiddly for an installable app.
-3. **Mobile priority:** should phones get full parity in v1 (as planned), or desktop browsers first with phones in v1.1? The lock-screen spike decides how hard phones are.
+3. **Mobile priority:** ✅ decided: **full phone support in v1** (iOS 16.4+ and Android Chrome are release blockers, not nice-to-haves). Phase 1 therefore starts with the lock-screen playback spike on a real iPhone and Android phone, and Phase 4's exit criteria include a full sleep session (45 min, screen locked) on both.
 4. **Ambience fallback:** OK to add AAC copies (~1.2 MB more in the repo/build), so Safari users get the sounds?
 
 ## 11. Hosting setup (Cloudflare Pages + ejai.ai)
