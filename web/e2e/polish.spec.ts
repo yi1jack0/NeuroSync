@@ -10,7 +10,7 @@ const ACCEPTED = { masterVolume: 0.5, lastPreset: 'Alpha Focus', disclaimerAccep
 async function open(page: Page, extra: object = {}) {
   await page.addInitScript((s) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('neurosync.settings.v1', JSON.stringify(s)); sessionStorage.setItem('seeded', '1'); } }, { ...ACCEPTED, ...extra });
   await page.goto('/');
-  await expect(page.getByRole('button', { name: /^(Play|Pause)$/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^(Play|Pause|播放|暂停)$/ })).toBeVisible();
 }
 const seriousAxe = async (page: Page) => (await new AxeBuilder({ page }).analyze()).violations
   .filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${v.id} (${v.nodes.length})`);
@@ -127,4 +127,51 @@ test('clicking the orb cycles its speed (Calm -> Lively -> Slow), remembered acr
   await page.getByRole('button', { name: /^Visualizer speed/ }).focus();
   await page.keyboard.press('Enter');                               // keyboard works too
   await expect(page.getByText('Orb speed: Calm')).toBeVisible();
+});
+
+test.describe('Chinese (Simplified)', () => {
+  test.use({ locale: 'zh-CN' });
+
+  test('a Chinese browser gets Chinese automatically, including the safety notice', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('dialog', { name: '开始之前' })).toBeVisible();
+    await expect(page.getByText('请使用立体声耳机。')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.lang)).toBe('zh-Hans');
+    await page.getByRole('button', { name: '我已了解，继续' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('α 波专注');
+    await expect(page.getByRole('button', { name: '播放' })).toBeVisible();
+  });
+
+  test('switch to English and back from the menu; choice is remembered', async ({ page }) => {
+    await open(page, { lang: 'zh' });
+    await page.getByRole('button', { name: '菜单' }).click();
+    await page.getByRole('radio', { name: 'English' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Alpha Focus');
+    expect(await page.evaluate(() => document.documentElement.lang)).toBe('en');
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.getByRole('radio', { name: '简体中文' }).click();
+    await expect(page.getByText('语言：简体中文')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('α 波专注');
+  });
+
+  test('works fully in Chinese: library, mixer, timer shortcut, save, ambience names', async ({ page }) => {
+    await open(page, { lang: 'zh' });
+    await page.getByRole('button', { name: /^海边冥想，/ }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('海边冥想');
+    await expect(page.getByText('θ 波 · 4–8 Hz')).toBeVisible();
+    await expect(page.getByRole('slider', { name: '宁静海浪', exact: true })).toBeVisible();
+    await page.locator('body').click({ position: { x: 5, y: 400 } });
+    await page.keyboard.press('t');
+    await expect(page.getByRole('radio', { name: '45 分钟' })).toBeVisible();      // T shortcut works in Chinese
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: '保存为预设' }).click();
+    await page.getByRole('textbox', { name: '新预设名称' }).fill('我的海边');
+    await page.keyboard.press('Enter');
+    await expect(page.getByText('已将“我的海边”保存到我的预设')).toBeVisible();
+    await expect(page.getByRole('group', { name: '我的预设' })).toBeVisible();
+    await page.getByRole('button', { name: '播放' }).click();
+    await expect(page.getByText('正在播放', { exact: true })).toBeVisible();
+  });
 });

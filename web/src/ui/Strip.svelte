@@ -2,6 +2,7 @@
   // One mixer channel: native range input (keyboard + screen readers for free) with a
   // spoken value, optional band label, mute, pan and remove.
   import Icon from './Icon.svelte';
+  import { t } from '../lib/i18n.svelte';
   interface Props {
     label: string; icon: string; min: number; max: number; step: number; value: number;
     fmt: (v: number) => string; spoken: (v: number) => string; onchange: (v: number) => void;
@@ -18,7 +19,7 @@
   <div class="head">
     <span class="ic"><Icon name={icon} size={18} /></span>
     {#if onremove}
-      <button class="rm icon-btn" onclick={onremove} aria-label="Remove {label}" title="Remove"><Icon name="close" size={13} /></button>
+      <button class="rm icon-btn" onclick={onremove} aria-label={t('strip.remove', { label })} title={t('strip.removeTip')}><Icon name="close" size={13} /></button>
     {/if}
   </div>
   <span class="lbl" id="{id}-l">{label}</span>
@@ -26,16 +27,16 @@
   {#if bandLabel}<span class="band" style:color={bandColor}>{bandLabel}</span>{/if}
   <div class="fader">
     <input type="range" class="vertical" {min} {max} {step} {value} style:--p="{pct}%"
-      aria-labelledby="{id}-l" aria-valuetext={spoken(value) + (bandLabel ? `, ${bandLabel.toLowerCase()} band` : '')}
+      aria-labelledby="{id}-l" aria-valuetext={spoken(value) + (bandLabel ? t('mx.bandSuffix', { band: bandLabel.toLowerCase() }) : '')}
       disabled={muted === true} oninput={(e) => onchange(+(e.currentTarget as HTMLInputElement).value)} />
   </div>
   {#if pan !== undefined && onpan}
     <input type="range" class="pan" min="-1" max="1" step="0.05" value={pan} style:--p="{(pan + 1) * 50}%"
-      aria-label="{label} pan" aria-valuetext={pan === 0 ? 'centre' : pan < 0 ? `${Math.round(-pan * 100)} percent left` : `${Math.round(pan * 100)} percent right`}
-      ondblclick={() => onpan(0)} oninput={(e) => onpan(+(e.currentTarget as HTMLInputElement).value)} title="Pan (double-click to centre)" />
+      aria-label={t('strip.pan', { label })} aria-valuetext={pan === 0 ? t('strip.centre') : pan < 0 ? t('strip.left', { n: Math.round(-pan * 100) }) : t('strip.right', { n: Math.round(pan * 100) })}
+      ondblclick={() => onpan(0)} oninput={(e) => onpan(+(e.currentTarget as HTMLInputElement).value)} title={t('strip.panTip')} />
   {/if}
   {#if onmute}
-    <button class="icon-btn mute" aria-pressed={muted} aria-label="Mute {label}" onclick={() => onmute(!muted)}
+    <button class="icon-btn mute" aria-pressed={muted} aria-label={t('strip.mute', { label })} onclick={() => onmute(!muted)}
       style:color={muted ? 'var(--danger)' : 'var(--dim)'}><Icon name={muted ? 'mute' : 'volume'} size={17} /></button>
   {/if}
 </div>

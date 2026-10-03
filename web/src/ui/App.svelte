@@ -7,6 +7,7 @@
   import Stage from './Stage.svelte';
   import Toasts from './Toasts.svelte';
   import TopBar from './TopBar.svelte';
+  import { i18n, t, type Key } from '../lib/i18n.svelte';
 
   $effect(() => {
     const root = document.documentElement;
@@ -15,7 +16,7 @@
     root.style.setProperty('--accent', app.settings.highContrast ? '#FFFF00' : app.band.color);
     document.querySelector('meta[name=theme-color]')?.setAttribute('content', app.settings.highContrast ? '#000000' : '#121417');
   });
-  $effect(() => { document.title = app.isPlaying ? `▶ ${app.draft.name} · NeuroSync` : 'NeuroSync — Tune your mind'; });
+  $effect(() => { document.title = app.isPlaying ? t('title.playing', { name: i18n.name(app.draft.name) }) : t('title.idle'); });
 
   function onKey(e: KeyboardEvent) {
     const t = e.target as HTMLElement;
@@ -32,11 +33,11 @@
     else if (e.key === 'm' || e.key === 'M') app.toggleMute();
     else if (e.key === 's' || e.key === 'S') { app.saving = true; app.tab = 'mixer'; app.mixerOpen = true; }
     else if (e.key === 'n' || e.key === 'N') app.newSession();
-    else if (e.key === 't' || e.key === 'T') (document.querySelector('[aria-label="Sleep timer"]') as HTMLElement | null)?.click();
+    else if (e.key === 't' || e.key === 'T') (document.querySelector('[data-timer]') as HTMLElement | null)?.click();
     else if (e.key === '/') { e.preventDefault(); app.libraryOpen = true; app.tab = 'library'; queueMicrotask(() => (document.querySelector('input[type=search]') as HTMLElement | null)?.focus()); }
     else if (e.key === '?' || e.key === 'F1') { e.preventDefault(); app.dialog = 'shortcuts'; }
   }
-  const TABS: [Tab, string, string][] = [['library', 'Library', 'library'], ['now', 'Now', 'now'], ['mixer', 'Mixer', 'mixer']];
+  const TABS: [Tab, Key, string][] = [['library', 'tab.library', 'library'], ['now', 'tab.now', 'now'], ['mixer', 'tab.mixer', 'mixer']];
 </script>
 
 <svelte:window onkeydown={onKey} />
@@ -44,12 +45,12 @@
 <main class="app" data-tab={app.tab}>
   <TopBar />
   <Library />
-  <button class="scrim" class:open={app.libraryOpen} aria-label="Close library" tabindex="-1" onclick={() => (app.libraryOpen = false)}></button>
+  <button class="scrim" class:open={app.libraryOpen} aria-label={t('lib.close')} tabindex="-1" onclick={() => (app.libraryOpen = false)}></button>
   <Stage />
   <Mixer />
-  <div class="tabbar" role="tablist" aria-label="Sections">
+  <div class="tabbar" role="tablist" aria-label={t('region.sections')}>
     {#each TABS as [id, label, icon]}
-      <button role="tab" aria-selected={app.tab === id} onclick={() => (app.tab = id)}><Icon name={icon} />{label}</button>
+      <button role="tab" aria-selected={app.tab === id} onclick={() => (app.tab = id)}><Icon name={icon} />{t(label)}</button>
     {/each}
   </div>
 </main>

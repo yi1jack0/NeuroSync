@@ -4,40 +4,41 @@
   import Orb from './Orb.svelte';
   import { ORB_SPEEDS } from '../domain/bands';
   import { fmtTime } from './format';
+  import { i18n, t } from '../lib/i18n.svelte';
 
   const b = $derived(binauralOf(app.draft));
   const status = $derived.by(() => {
     switch (app.status) {
-      case 'playing': return app.remaining !== null && app.timerMinutes > 0 ? `Playing · ${fmtTime(app.remaining)} remaining` : 'Playing';
-      case 'fading': return 'Fading out…';
-      case 'paused': return 'Paused';
-      case 'loading': return 'Loading sounds…';
-      case 'stopped': return 'Session ended';
-      default: return 'Ready';
+      case 'playing': return app.remaining !== null && app.timerMinutes > 0 ? t('st.playingLeft', { t: fmtTime(app.remaining) }) : t('st.playing');
+      case 'fading': return t('st.fading');
+      case 'paused': return t('st.paused');
+      case 'loading': return t('st.loading');
+      case 'stopped': return t('st.stopped');
+      default: return t('st.ready');
     }
   });
-  const hint = $derived(app.isPlaying ? 'Space to pause' : app.status === 'paused' ? 'Space to resume' : 'Press Space or ▶ to begin · ? for shortcuts');
+  const hint = $derived(app.isPlaying ? t('st.hintPause') : app.status === 'paused' ? t('st.hintResume') : t('st.hintStart'));
 </script>
 
-<section class="stage region-stage" aria-label="Now playing">
+<section class="stage region-stage" aria-label={t('region.now')}>
   {#if app.pendingShare}
     <div class="banner glass" role="status">
-      <span>Shared preset: <b>{app.pendingShare.name}</b></span>
-      <button class="btn primary" onclick={() => app.acceptShare(true)}>Add to My Presets</button>
-      <button class="btn" onclick={() => app.acceptShare(false)}>Just play it</button>
+      <span>{t('st.shared')} <b>{i18n.name(app.pendingShare.name)}</b></span>
+      <button class="btn primary" onclick={() => app.acceptShare(true)}>{t('st.addShared')}</button>
+      <button class="btn" onclick={() => app.acceptShare(false)}>{t('st.justPlay')}</button>
     </div>
   {/if}
   {#if app.interrupted}
     <div class="banner glass" role="alert">
-      <span>Playback was paused by your browser or device.</span>
-      <button class="btn primary" onclick={() => app.resumeAfterInterruption()}>Resume</button>
+      <span>{t('st.interrupted')}</span>
+      <button class="btn primary" onclick={() => app.resumeAfterInterruption()}>{t('st.resume')}</button>
     </div>
   {/if}
-  <span class="chip">{app.band.label.toUpperCase()} · {app.band.low}–{app.band.high} Hz</span>
-  <h1 class="title">{app.draft.name}{#if app.dirty}<span class="edited"> · edited</span>{/if}</h1>
-  <p class="meta">{b ? `${b.base_hz} Hz carrier · ${b.beat_hz} Hz beat` : 'Ambience only'}</p>
-  <button class="orb" onclick={() => app.cycleOrbSpeed()} title="Click to change the orb's speed"
-    aria-label="Visualizer speed: {ORB_SPEEDS[app.settings.orbSpeed]?.name}. Activate to change">
+  <span class="chip">{i18n.bandUpper(app.band.name)} · {app.band.low}–{app.band.high} Hz</span>
+  <h1 class="title">{i18n.name(app.draft.name)}{#if app.dirty}<span class="edited"> · {t('st.edited')}</span>{/if}</h1>
+  <p class="meta">{b ? t('st.meta', { base: b.base_hz, beat: b.beat_hz }) : t('st.ambienceOnly')}</p>
+  <button class="orb" onclick={() => app.cycleOrbSpeed()} title={t('orb.tip')}
+    aria-label={t('orb.label', { speed: t(`speed.${ORB_SPEEDS[app.settings.orbSpeed]?.name ?? 'Calm'}` as 'speed.Calm') })}>
     <Orb color={app.settings.highContrast ? '#ffffff' : app.band.color} beat={b?.beat_hz ?? 1} playing={app.status === 'playing'}
       reduceMotion={app.settings.reduceMotion} flat={app.settings.highContrast} speed={app.settings.orbSpeed} />
   </button>

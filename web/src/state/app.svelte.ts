@@ -14,6 +14,7 @@ import { downloadPreset, pickFile, readPresetFile } from '../lib/files';
 import { idbDelete, idbGet, idbGetAll, idbPut } from '../lib/idb';
 import { loadSettings, saveSettings, type Settings } from '../lib/settings';
 import { decodePreset, presetTokenFromHash, shareable, shareUrl } from '../lib/share';
+import { detectLang, i18n, type Lang, LANGS, t } from '../lib/i18n.svelte';
 
 export const BUILTIN: readonly Preset[] = (presetsJson as unknown[]).map(parsePreset);
 export type Tab = 'library' | 'now' | 'mixer';
@@ -58,7 +59,18 @@ class AppState {
   private toastId = 0;
 
   // ------------------------------------------------------------------ boot
+  /** Switch UI language (persisted). Stored preset names stay canonical. */
+  setLang(lang: Lang, announce = true) {
+    i18n.lang = lang;
+    this.settings.lang = lang;
+    this.save();
+    document.documentElement.lang = LANGS.find((l) => l.id === lang)!.html;
+    this.updateMediaMetadata();
+    if (announce) this.toast(t('ts.language'));
+  }
+
   async init() {
+    this.setLang(this.settings.lang || detectLang(), false);
     this.engine.subscribe(() => this.syncEngine());
     this.engine.setMaster(this.settings.masterVolume);
     if (this.settings.sinkId) void this.engine.setSink(this.settings.sinkId);
@@ -80,8 +92,8 @@ class AppState {
     this.status = this.engine.state;
     this.interrupted = this.engine.interrupted;
     this.remaining = this.engine.remaining;
-    if (this.engine.error) { this.toast(this.engine.error); this.engine.error = ''; }
-    if (prev === 'fading' && this.status === 'stopped' && this.timerMinutes > 0) this.toast('Session complete — audio stopped');
+    if (this.engine.error) { this.toast(t('ts.audioError', { msg: this.engine.error })); this.engine.error = ''; }
+    if (prev === 'fading' && this.status === 'stopped' && this.timerMinutes > 0) this.toast(t('ts.complete'));
     if ('mediaSession' in navigator) {
       navigator.mediaSession.playbackState = this.isPlaying ? 'playing' : this.status === 'paused' ? 'paused' : 'none';
     }
@@ -138,16 +150,16 @@ class AppState {
     } else {
       const file = await pickFile('audio/*');
       if (!file) return;
-      if (file.size > MAX_UPLOAD) { this.toast('That file is larger than 25 MB'); return; }
+      if (file.size > MAX_UPLOAD) { this.toast(t('ts.tooBig')); return; }
       const id = crypto.randomUUID();
-      try { await idbPut('sounds', id, file); } catch { this.toast('This browser cannot store sounds (private mode?)'); return; }
+      try { await idbPut('sounds', id, file); } catch { this.toast(t('ts.noSoundStorage')); return; }
       cfg = parseChannel({ kind: 'sample', name: file.name.replace(/\.[^.]+$/, '').slice(0, 18), path: LOCAL_PREFIX + id, volume: 0.4 });
     }
     try { await this.engine.addChannel(cfg); }
-    catch (e) { this.toast(`Couldn't open that sound: ${e instanceof Error ? e.message : e}`); return; }
+    catch (e) { this.toast(t('ts.soundFailed', { e: e instanceof Error ? e.message : String(e) })); return; }
     this.draft.channels.push(cfg);
     this.pushDraft();
-    this.toast(`Added ${cfg.name}`);
+    this.toast(t('ts.added', { name: i18n.name(cfg.name) }));
   }
 
   removeChannel(index: number) {
@@ -156,17 +168,17 @@ class AppState {
     this.engine.removeChannel(index);
     this.draft.channels.splice(index, 1);
     this.pushDraft();
-    this.toast(`Removed ${ch.name}`);
+    this.toast(t('ts.removed', { name: i18n.name(ch.name) }));
   }
 
   async savePreset(name: string) {
     name = name.trim().slice(0, 48);
     if (!name) return;
-    if (this.isBuiltin(name)) { this.toast("Built-in presets can't be overwritten — choose another name"); return; }
+    if (this.isBuiltin(name)) { this.toast(t('ts.builtin')); return; }
     const b = binauralOf(this.draft);
     const preset = parsePreset({ ...$state.snapshot(this.draft), name, band: b ? bandForFrequency(b.beat_hz).name : this.draft.band, category: '' });
     const existed = this.user.some((p) => p.name.toLowerCase() === name.toLowerCase());
-    try { await idbPut('presets', name.toLowerCase(), preset); } catch { this.toast('Saving needs browser storage (unavailable here)'); return; }
+    try { await idbPut('presets', name.toLowerCase(), preset); } catch { this.toast(t('ts.noStorage')); return; }
     this.user = [...this.user.filter((p) => p.name.toLowerCase() !== name.toLowerCase()), preset].sort((a, b2) => a.name.localeCompare(b2.name));
     this.draft.name = name;
     this.draft.band = preset.band;
@@ -175,24 +187,24 @@ class AppState {
     this.saving = false;
     this.settings.lastPreset = name;
     this.save();
-    this.toast(existed ? `Updated “${name}”` : `Saved “${name}” to My Presets`);
+    this.toast(existed ? t('ts.updated', { name }) : t('ts.saved', { name }));
   }
 
   async deletePreset(p: Preset) {
     await idbDelete('presets', p.name.toLowerCase()).catch(() => undefined);
     this.user = this.user.filter((u) => u.name !== p.name);
-    this.toast(`Deleted “${p.name}”`, { label: 'Undo', run: () => void this.restore(p) });
+    this.toast(t('ts.deleted', { name: p.name }), { label: t('ts.undo'), run: () => void this.restore(p) });
   }
 
   private async restore(p: Preset) {
     await idbPut('presets', p.name.toLowerCase(), p).catch(() => undefined);
     this.user = [...this.user, p].sort((a, b) => a.name.localeCompare(b.name));
-    this.toast(`Restored “${p.name}”`);
+    this.toast(t('ts.restored', { name: p.name }));
   }
 
   exportPreset(p: Preset = this.draft) {
     const dropped = downloadPreset($state.snapshot(p) as Preset);
-    this.toast(dropped ? `Exported (${dropped} device-only sound${dropped > 1 ? 's' : ''} left out)` : `Exported “${p.name}”`);
+    this.toast(dropped ? t('ts.exportedDropped', { n: dropped }) : t('ts.exported', { name: i18n.name(p.name) }));
   }
 
   async importPreset() {
@@ -203,8 +215,8 @@ class AppState {
       if (this.isBuiltin(p.name)) p.name = `${p.name} (imported)`;
       await idbPut('presets', p.name.toLowerCase(), p);
       this.user = [...this.user.filter((u) => u.name !== p.name), p].sort((a, b) => a.name.localeCompare(b.name));
-      this.toast(`Imported “${p.name}”`);
-    } catch { this.toast("That file isn't a valid NeuroSync preset"); }
+      this.toast(t('ts.imported', { name: p.name }));
+    } catch { this.toast(t('ts.badFile')); }
   }
 
   async sharePreset(p: Preset = this.draft) {
@@ -212,8 +224,8 @@ class AppState {
     const { dropped } = shareable(snap);
     const url = await shareUrl(snap);
     try {
-      if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ title: `NeuroSync — ${p.name}`, url });
-      else { await navigator.clipboard.writeText(url); this.toast(dropped ? 'Link copied (device-only sounds left out)' : 'Link copied to clipboard'); }
+      if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ title: `NeuroSync — ${i18n.name(p.name)}`, url });
+      else { await navigator.clipboard.writeText(url); this.toast(dropped ? t('ts.linkCopiedDropped') : t('ts.linkCopied')); }
     } catch { /* user cancelled share sheet */ }
   }
 
@@ -221,7 +233,7 @@ class AppState {
     const token = presetTokenFromHash();
     if (!token) return;
     try { this.pendingShare = await decodePreset(token); }
-    catch { this.toast('That share link is damaged or incomplete'); }
+    catch { this.toast(t('ts.badLink')); }
     history.replaceState(null, '', location.pathname + location.search);
   }
 
@@ -233,7 +245,7 @@ class AppState {
       if (this.isBuiltin(p.name)) p.name = `${p.name} (shared)`;
       await idbPut('presets', p.name.toLowerCase(), p).catch(() => undefined);
       this.user = [...this.user.filter((u) => u.name !== p.name), p].sort((a, b) => a.name.localeCompare(b.name));
-      this.toast(`Added “${p.name}” to My Presets`);
+      this.toast(t('ts.addedShared', { name: p.name }));
     }
     this.loadPreset(p);
   }
@@ -269,14 +281,14 @@ class AppState {
     this.settings.sinkId = id;
     this.save();
     const ok = await this.engine.setSink(id);
-    const name = this.devices.find((d) => d.id === id)?.label ?? 'System default';
-    this.toast(ok || !id ? `Output: ${name}` : "Couldn't switch output device");
+    const name = this.devices.find((d) => d.id === id)?.label ?? t('dev.default');
+    this.toast(ok || !id ? t('ts.output', { name }) : t('ts.outputFail'));
   }
   setPref<K extends 'highContrast' | 'reduceMotion'>(key: K, value: boolean) { this.settings[key] = value; this.save(); }
   cycleOrbSpeed() {
     this.settings.orbSpeed = (this.settings.orbSpeed + 1) % ORB_SPEEDS.length;
     this.save();
-    this.toast(`Orb speed: ${ORB_SPEEDS[this.settings.orbSpeed]!.name}`);
+    this.toast(t('ts.orb', { name: t(`speed.${ORB_SPEEDS[this.settings.orbSpeed]!.name}`) }));
   }
   acceptDisclaimer() { this.settings.disclaimerAccepted = true; this.save(); this.dialog = 'none'; }
   async install() { await this.installPrompt?.prompt(); this.installPrompt = null; }
@@ -300,8 +312,8 @@ class AppState {
     if (!('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
     const b = binauralOf(this.draft);
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: this.draft.name, artist: 'NeuroSync',
-      album: b ? `${band(this.draft.band).label} · ${b.beat_hz} Hz` : 'Ambience',
+      title: i18n.name(this.draft.name), artist: 'NeuroSync',
+      album: b ? `${i18n.band(this.draft.band)} · ${b.beat_hz} Hz` : t('st.ambienceOnly'),
       artwork: [{ src: `${import.meta.env.BASE_URL}icons/icon-512.png`, sizes: '512x512', type: 'image/png' }],
     });
   }

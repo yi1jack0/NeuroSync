@@ -5,6 +5,7 @@
   import Icon from './Icon.svelte';
   import Popover from './Popover.svelte';
   import Strip from './Strip.svelte';
+  import { i18n, t } from '../lib/i18n.svelte';
 
   let addOpen = $state(false);
   let name = $state('');
@@ -14,91 +15,91 @@
   const gen = $derived(genIndex >= 0 ? app.draft.channels[genIndex] : undefined);
   const ambience = $derived(app.draft.channels.map((c, i) => ({ c, i })).filter(({ i }) => i !== genIndex));
   const pct = (v: number) => `${Math.round(v * 100)}%`;
-  const spokenPct = (v: number) => `${Math.round(v * 100)} percent`;
+  const spokenPct = (v: number) => t('vol.percent', { n: Math.round(v * 100) });
 
   $effect(() => {
     if (app.saving) {
       name = app.user.some((p) => p.name === app.draft.name) ? app.draft.name
-        : app.draft.name === 'Untitled session' ? '' : `${app.draft.name} (custom)`;
+        : app.draft.name === 'Untitled session' ? '' : t('mx.custom', { name: i18n.name(app.draft.name) });
       queueMicrotask(() => { nameInput?.focus(); nameInput?.select(); });
     }
   });
   function add(key: string) { addOpen = false; void app.addChannel(key); }
 </script>
 
-<aside class="mix glass region-mix" class:open={app.mixerOpen} aria-label="Mixer">
-  <button class="drawer-handle" aria-label={app.mixerOpen ? 'Collapse mixer' : 'Expand mixer'} aria-expanded={app.mixerOpen}
+<aside class="mix glass region-mix" class:open={app.mixerOpen} aria-label={t('region.mixer')}>
+  <button class="drawer-handle" aria-label={app.mixerOpen ? t('mx.collapse') : t('mx.expand')} aria-expanded={app.mixerOpen}
     onclick={() => (app.mixerOpen = !app.mixerOpen)}><span></span></button>
   <div class="head">
     {#if app.saving}
       <form class="saveform" onsubmit={(e) => { e.preventDefault(); void app.savePreset(name); }}>
-        <input bind:this={nameInput} bind:value={name} maxlength="48" placeholder="Preset name" aria-label="New preset name"
+        <input bind:this={nameInput} bind:value={name} maxlength="48" placeholder={t('mx.name')} aria-label={t('mx.nameA11y')}
           onkeydown={(e) => e.key === 'Escape' && (app.saving = false)} />
-        <button class="btn primary" type="submit" disabled={!name.trim()}>Save</button>
-        <button class="icon-btn" type="button" aria-label="Cancel" onclick={() => (app.saving = false)}><Icon name="close" size={16} /></button>
+        <button class="btn primary" type="submit" disabled={!name.trim()}>{t('mx.saveBtn')}</button>
+        <button class="icon-btn" type="button" aria-label={t('mx.cancel')} onclick={() => (app.saving = false)}><Icon name="close" size={16} /></button>
       </form>
     {:else}
-      <span class="caps">Mixer</span>
-      {#if app.dirty}<span class="dirty" title="Unsaved changes" aria-label="Unsaved changes">●</span>{/if}
+      <span class="caps">{t('mx.title')}</span>
+      {#if app.dirty}<span class="dirty" title={t('mx.unsaved')} aria-label={t('mx.unsaved')}>●</span>{/if}
       <span class="spacer"></span>
-      <button class="btn" class:primary={app.dirty} onclick={() => (app.saving = true)} title="Save as preset (S)">Save as preset</button>
+      <button class="btn" class:primary={app.dirty} onclick={() => (app.saving = true)} title={t('mx.saveTip')}>{t('mx.save')}</button>
     {/if}
   </div>
 
   <div class="body">
-    <section aria-label="Custom generator">
-      <div class="caps sub">Custom generator</div>
+    <section aria-label={t('mx.generator')} data-sec="gen">
+      <div class="caps sub">{t('mx.generator')}</div>
       {#if gen}
         <div class="row">
-          <Strip label="Base" icon="wave" generator min={BASE_FREQ_MIN_HZ} max={BASE_FREQ_MAX_HZ} step={1} value={gen.base_hz}
-            fmt={(v) => `${v.toFixed(0)} Hz`} spoken={(v) => `${v.toFixed(0)} hertz carrier`}
+          <Strip label={t('mx.base')} icon="wave" generator min={BASE_FREQ_MIN_HZ} max={BASE_FREQ_MAX_HZ} step={1} value={gen.base_hz}
+            fmt={(v) => `${v.toFixed(0)} Hz`} spoken={(v) => t('mx.baseSpoken', { v: v.toFixed(0) })}
             onchange={(v) => app.updateChannel(genIndex, { base_hz: v })} />
-          <Strip label="Beat" icon="orb" generator min={BEAT_FREQ_MIN_HZ} max={BEAT_FREQ_MAX_HZ} step={0.1} value={gen.beat_hz}
-            fmt={(v) => `${v.toFixed(1)} Hz`} spoken={(v) => `${v.toFixed(1)} hertz beat`}
-            bandLabel={bandForFrequency(gen.beat_hz).label.toUpperCase()} bandColor={app.settings.highContrast ? '#ff0' : bandForFrequency(gen.beat_hz).color}
+          <Strip label={t('mx.beat')} icon="orb" generator min={BEAT_FREQ_MIN_HZ} max={BEAT_FREQ_MAX_HZ} step={0.1} value={gen.beat_hz}
+            fmt={(v) => `${v.toFixed(1)} Hz`} spoken={(v) => t('mx.beatSpoken', { v: v.toFixed(1) })}
+            bandLabel={i18n.bandUpper(bandForFrequency(gen.beat_hz).name)} bandColor={app.settings.highContrast ? '#ff0' : bandForFrequency(gen.beat_hz).color}
             onchange={(v) => app.updateChannel(genIndex, { beat_hz: v })} />
-          <Strip label="Tone" icon="headphones" generator min={0} max={1} step={0.01} value={gen.volume} fmt={pct} spoken={spokenPct}
+          <Strip label={t('mx.tone')} icon="headphones" generator min={0} max={1} step={0.01} value={gen.volume} fmt={pct} spoken={spokenPct}
             muted={gen.muted} onmute={(m) => app.updateChannel(genIndex, { muted: m })}
             onchange={(v) => app.updateChannel(genIndex, { volume: v })} />
-          <p class="faint tip">Beat = right ear − left ear. A base of 100–400 Hz gives the clearest beat. Use headphones.</p>
+          <p class="faint tip">{t('mx.tip')}</p>
         </div>
       {:else}
-        <button class="btn ghost addgen" onclick={() => app.addChannel('binaural')}><Icon name="plus" /> Add binaural tone</button>
+        <button class="btn ghost addgen" onclick={() => app.addChannel('binaural')}><Icon name="plus" /> {t('mx.addTone')}</button>
       {/if}
     </section>
 
     <div class="divider"></div>
 
-    <section aria-label="Ambience">
+    <section aria-label={t('mx.ambience')} data-sec="amb">
       <div class="subhead">
-        <span class="caps">Ambience</span>
-        <Popover bind:open={addOpen} label="Add sound" up>
+        <span class="caps">{t('mx.ambience')}</span>
+        <Popover bind:open={addOpen} label={t('mx.addSound')} up>
           {#snippet trigger(toggle, open)}
-            <button class="btn addbtn" aria-expanded={open} onclick={toggle}><Icon name="plus" size={16} /> Add sound</button>
+            <button class="btn addbtn" aria-expanded={open} onclick={toggle}><Icon name="plus" size={16} /> {t('mx.addSound')}</button>
           {/snippet}
-          <div class="menu-section">Noise</div>
-          <button class="menu-item" onclick={() => add('pink')}><Icon name="noise" />Pink noise</button>
-          <button class="menu-item" onclick={() => add('brown')}><Icon name="noise" />Brown noise</button>
-          <button class="menu-item" onclick={() => add('white')}><Icon name="noise" />White noise</button>
+          <div class="menu-section">{t('mx.noise')}</div>
+          <button class="menu-item" onclick={() => add('pink')}><Icon name="noise" />{i18n.name('Pink noise')}</button>
+          <button class="menu-item" onclick={() => add('brown')}><Icon name="noise" />{i18n.name('Brown noise')}</button>
+          <button class="menu-item" onclick={() => add('white')}><Icon name="noise" />{i18n.name('White noise')}</button>
           {#each [...new Set(CATALOG.map((s) => s.category))] as cat}
-            <div class="menu-section">{cat}</div>
+            <div class="menu-section">{i18n.name(cat)}</div>
             {#each CATALOG.filter((s) => s.category === cat) as s (s.id)}
-              <button class="menu-item" title={s.description} onclick={() => add('asset:' + s.id)}><Icon name="wave" />{s.name}</button>
+              <button class="menu-item" title={i18n.soundDescription(s.id, s.description)} onclick={() => add('asset:' + s.id)}><Icon name="wave" />{i18n.name(s.name)}</button>
             {/each}
           {/each}
           <div class="menu-sep"></div>
-          <button class="menu-item" onclick={() => add('file')}><Icon name="file" />Your own sound file…</button>
+          <button class="menu-item" onclick={() => add('file')}><Icon name="file" />{t('mx.ownFile')}</button>
         </Popover>
       </div>
       <div class="row amb">
         {#each ambience as { c, i } (c.name + i)}
-          <Strip label={c.name} icon={c.kind === 'noise' ? 'noise' : c.path.startsWith('asset:') ? 'wave' : 'file'}
+          <Strip label={i18n.name(c.name)} icon={c.kind === 'noise' ? 'noise' : c.path.startsWith('asset:') ? 'wave' : 'file'}
             min={0} max={1} step={0.01} value={c.volume} fmt={pct} spoken={spokenPct}
             muted={c.muted} onmute={(m) => app.updateChannel(i, { muted: m })}
             pan={c.pan} onpan={(p) => app.updateChannel(i, { pan: p })}
             onremove={() => app.removeChannel(i)} onchange={(v) => app.updateChannel(i, { volume: v })} />
         {:else}
-          <p class="faint empty">No ambience yet. Add river, sea or noise to mask distractions.</p>
+          <p class="faint empty">{t('mx.empty')}</p>
         {/each}
       </div>
     </section>
@@ -130,7 +131,7 @@
     .mix.open { max-height: 460px; }
     .drawer-handle { display: block; }
     .body { flex-direction: row; justify-content: center; gap: 18px; }
-    section[aria-label="Ambience"] { min-width: 230px; }
+    section[data-sec="amb"] { min-width: 230px; }
     .subhead { gap: 12px; }
     .divider { width: 1px; height: auto; }
     .row { min-height: 250px; }
@@ -140,7 +141,7 @@
     .mix, .mix.open { max-height: none; border-radius: var(--radius); }
     .drawer-handle { display: none; }
     .body { flex-direction: column; justify-content: flex-start; gap: 10px; }
-    section[aria-label="Ambience"] { min-width: 0; }
+    section[data-sec="amb"] { min-width: 0; }
     .divider { width: auto; height: 1px; }
     .row { flex-direction: column; min-height: 0; gap: 6px; }
     .amb { overflow: visible; }

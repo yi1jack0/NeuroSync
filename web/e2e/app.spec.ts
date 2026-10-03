@@ -74,7 +74,7 @@ test('workflow 3 — Sleep: Delta preset with a 45 min timer and 5 min fade', as
   await open(page);
   await page.getByRole('button', { name: /^Delta Sleep,/ }).click();
   await page.getByRole('button', { name: 'Sleep timer' }).click();
-  await page.getByRole('radio', { name: '45m' }).click();
+  await page.getByRole('radio', { name: '45 minutes' }).click();
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Play' }).click();
   await expect(page.getByText(/Playing · 4[45]:\d\d remaining/)).toBeVisible();

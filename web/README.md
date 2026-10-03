@@ -24,7 +24,7 @@ Hosting: Cloudflare Workers (static assets), configured in `wrangler.jsonc`. Clo
 | `src/domain/` | Limits, bands, preset schema: ports of the Python domain, checked by `golden.test.ts` |
 | `src/state/app.svelte.ts` | All app state and actions |
 | `src/ui/` | Svelte components |
-| `src/lib/` | Settings, IndexedDB, share links, files, offline/service worker |
+| `src/lib/` | Settings, IndexedDB, share links, files, offline/service worker, `i18n.svelte.ts` (English + 简体中文) |
 | `scripts/` | `sync-shared` (presets + ambience from `../src/neurosync`), `transcode-aac` (Safari copies), `check-size`, `make-icons`, `screens` |
 | `test/harness.*` | Test-only page that renders the real audio graph offline for Playwright |
 
@@ -32,3 +32,8 @@ Hosting: Cloudflare Workers (static assets), configured in `wrangler.jsonc`. Clo
 - run `npm run sync`
 - run `npm run transcode` if the sounds changed (needs ffmpeg), and commit the `.m4a` files
 - run `python tools/export_golden.py` if engine rules changed (CI fails on drift)
+
+**Languages:** English and Simplified Chinese, in `src/lib/i18n.svelte.ts`.
+- First visit follows the browser language; the user can switch from the ⋯ menu or the welcome screen, and the choice is saved.
+- Built-in preset and sound names are translated for display only. Stored data keeps the canonical English names, so presets, links and files work across languages.
+- `i18n.test.ts` fails if a Chinese string is missing or its `{placeholders}` differ from the English ones.

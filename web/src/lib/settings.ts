@@ -3,12 +3,12 @@ import { MASTER_GAIN_MAX, clamp } from '../domain/limits';
 
 export interface Settings {
   masterVolume: number; lastPreset: string; disclaimerAccepted: boolean; fadeMinutes: number;
-  highContrast: boolean; reduceMotion: boolean; sinkId: string; orbSpeed: number;
+  highContrast: boolean; reduceMotion: boolean; sinkId: string; orbSpeed: number; lang: 'en' | 'zh' | '';
 }
 
 export const DEFAULTS: Settings = {
   masterVolume: 0.5, lastPreset: 'Alpha Focus', disclaimerAccepted: false, fadeMinutes: 5,
-  highContrast: false, reduceMotion: false, sinkId: '', orbSpeed: 1,
+  highContrast: false, reduceMotion: false, sinkId: '', orbSpeed: 1, lang: '',
 };
 const KEY = 'neurosync.settings.v1';
 
@@ -18,6 +18,7 @@ export function loadSettings(): Settings {
     const s = { ...DEFAULTS, ...raw };
     s.masterVolume = clamp(Number(s.masterVolume), 0, MASTER_GAIN_MAX);
     s.orbSpeed = Math.round(clamp(Number(s.orbSpeed), 0, 2));
+    if (s.lang !== 'en' && s.lang !== 'zh') s.lang = '';
     return s;
   } catch { return { ...DEFAULTS }; }
 }

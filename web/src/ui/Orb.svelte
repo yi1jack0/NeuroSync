@@ -3,6 +3,7 @@
   // flicker), floating on a slow, non-repeating drift with a wandering highlight.
   // ~30 fps while playing; zero work when paused, hidden, off-screen or reduced-motion.
   import { ORB_SPEEDS, visualPulseHz } from '../domain/bands';
+  import { t } from '../lib/i18n.svelte';
   let { color, beat, playing, reduceMotion = false, flat = false, speed = 1 }:
     { color: string; beat: number; playing: boolean; reduceMotion?: boolean; flat?: boolean; speed?: number } = $props();
 
@@ -100,7 +101,7 @@
   });
 </script>
 
-<div class="wrap" role="img" aria-label="Visualizer pulsing at {pulse.toFixed(2)} per second, synced to a {beat.toFixed(1)} hertz beat">
+<div class="wrap" role="img" aria-label={t('orb.img', { p: pulse.toFixed(2), b: beat.toFixed(1) })}>
   <canvas bind:this={canvas} aria-hidden="true"></canvas>
 </div>
 
