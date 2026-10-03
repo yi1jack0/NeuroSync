@@ -2,14 +2,16 @@
   // Breathing orb locked to the beat, folded down by octaves to a slow <= 0.6 Hz breath (never a
   // flicker), floating on a slow, non-repeating drift with a wandering highlight.
   // ~30 fps while playing; zero work when paused, hidden, off-screen or reduced-motion.
-  import { visualPulseHz } from '../domain/bands';
-  let { color, beat, playing, reduceMotion = false, flat = false }:
-    { color: string; beat: number; playing: boolean; reduceMotion?: boolean; flat?: boolean } = $props();
+  import { ORB_SPEEDS, visualPulseHz } from '../domain/bands';
+  let { color, beat, playing, reduceMotion = false, flat = false, speed = 1 }:
+    { color: string; beat: number; playing: boolean; reduceMotion?: boolean; flat?: boolean; speed?: number } = $props();
 
   let canvas: HTMLCanvasElement;
   let energy = 0, target = 0, raf = 0, last = 0, visible = true;
-  const t0 = performance.now();
-  const pulse = $derived(visualPulseHz(beat, 0.6));      // e.g. 10 Hz beat -> one breath every 3.2 s
+  // Integrated clocks (not now * rate): changing speed keeps phase continuous, no jump.
+  let phaseAcc = 0.25, driftClock = 0, prevNow = 0;
+  const mode = $derived(ORB_SPEEDS[speed] ?? ORB_SPEEDS[1]);
+  const pulse = $derived(visualPulseHz(beat, mode.ceiling));   // Calm: 10 Hz beat -> one breath every 3.2 s
   const TAU = Math.PI * 2;
   const motion = $derived(!reduceMotion && !(typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches));
 
@@ -30,12 +32,15 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
     energy = motion ? energy + (target - energy) * (target > energy ? 0.05 : 0.025) : target;   // no easing under reduced motion
-    const phase = playing && motion ? (((now - t0) / 1000) * pulse) % 1 : 0.25;
+    const dt = prevNow ? Math.min((now - prevNow) / 1000, 0.1) : 0;
+    prevNow = now;
+    if (playing && motion) { phaseAcc = (phaseAcc + dt * pulse) % 1; driftClock += dt * mode.drift; }
+    const phase = playing && motion ? phaseAcc : 0.25;
     const breath = 0.5 - 0.5 * Math.cos(2 * Math.PI * phase);
     const base = Math.min(w, h) * 0.2;
     const r = base * (1 + 0.07 * breath * energy);
     // Slow floating drift: two incommensurate periods (31 s / 23 s) so the path never visibly repeats.
-    const t = (now - t0) / 1000;
+    const t = driftClock;
     const drift = playing && motion ? Math.min(w, h) * 0.035 * energy : 0;
     const cx = w / 2 + Math.sin((t * TAU) / 31) * drift;
     const cy = h / 2 + Math.sin((t * TAU) / 23 + 1.3) * drift * 0.8;

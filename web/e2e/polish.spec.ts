@@ -112,3 +112,19 @@ test('@phone no serious axe violations on every tab', async ({ page }) => {
     expect(await seriousAxe(page), tab).toEqual([]);
   }
 });
+
+test('clicking the orb cycles its speed (Calm -> Lively -> Slow), remembered across reloads', async ({ page }) => {
+  await open(page);
+  const orb = page.getByRole('button', { name: /^Visualizer speed/ });
+  await expect(orb).toHaveAccessibleName(/Calm/);
+  await orb.click();
+  await expect(page.getByText('Orb speed: Lively')).toBeVisible();
+  await orb.click();
+  await expect(page.getByText('Orb speed: Slow')).toBeVisible();
+  await expect(orb).toHaveAccessibleName(/Slow/);
+  await page.reload();
+  await expect(page.getByRole('button', { name: /^Visualizer speed: Slow/ })).toBeVisible();
+  await page.getByRole('button', { name: /^Visualizer speed/ }).focus();
+  await page.keyboard.press('Enter');                               // keyboard works too
+  await expect(page.getByText('Orb speed: Calm')).toBeVisible();
+});

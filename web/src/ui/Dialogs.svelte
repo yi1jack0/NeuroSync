@@ -15,7 +15,7 @@
   const SHORTCUTS: [string, string][] = [
     ['Space', 'Play / pause'], ['Shift + Space', 'Stop with fade-out'], ['M', 'Mute master'],
     ['Ctrl/⌘ + ↑ ↓', 'Master volume'], ['T', 'Sleep timer'], ['S', 'Save as preset'], ['N', 'New custom session'],
-    ['/', 'Search presets'], ['↑ ↓ ← → PgUp PgDn', 'Adjust the focused slider'], ['Esc', 'Close menus and dialogs'], ['?', 'This help'],
+    ['/', 'Search presets'], ['↑ ↓ ← → PgUp PgDn', 'Adjust the focused slider'], ['Esc', 'Close menus and dialogs'], ['Enter on the orb (or click it)', 'Change orb speed'], ['?', 'This help'],
   ];
   const first = $derived(!app.settings.disclaimerAccepted);
 </script>

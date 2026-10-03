@@ -22,7 +22,8 @@
     const typing = t.matches('input:not([type=range]):not([type=checkbox]), textarea, select, [contenteditable]');
     if (typing || app.dialog !== 'none' || e.altKey) return;
     const mod = e.ctrlKey || e.metaKey;
-    const onControl = t.matches('button, input, select, a, summary');
+    // The orb is a button (click = change speed) but Space must still mean play/pause there.
+    const onControl = t.matches('button, input, select, a, summary') && !t.closest('button.orb');
     if (e.code === 'Space' && !mod && !onControl) { e.preventDefault(); e.shiftKey ? app.stop() : void app.toggle(); }
     else if (e.code === 'Space' && e.shiftKey && !mod) { e.preventDefault(); app.stop(); }
     else if (mod && e.key === 'ArrowUp') { e.preventDefault(); app.nudgeMaster(5); }

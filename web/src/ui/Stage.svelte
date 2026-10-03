@@ -2,6 +2,7 @@
   import { app } from '../state/app.svelte';
   import { binauralOf } from '../domain/preset';
   import Orb from './Orb.svelte';
+  import { ORB_SPEEDS } from '../domain/bands';
   import { fmtTime } from './format';
 
   const b = $derived(binauralOf(app.draft));
@@ -35,10 +36,11 @@
   <span class="chip">{app.band.label.toUpperCase()} · {app.band.low}–{app.band.high} Hz</span>
   <h1 class="title">{app.draft.name}{#if app.dirty}<span class="edited"> · edited</span>{/if}</h1>
   <p class="meta">{b ? `${b.base_hz} Hz carrier · ${b.beat_hz} Hz beat` : 'Ambience only'}</p>
-  <div class="orb">
+  <button class="orb" onclick={() => app.cycleOrbSpeed()} title="Click to change the orb's speed"
+    aria-label="Visualizer speed: {ORB_SPEEDS[app.settings.orbSpeed]?.name}. Activate to change">
     <Orb color={app.settings.highContrast ? '#ffffff' : app.band.color} beat={b?.beat_hz ?? 1} playing={app.status === 'playing'}
-      reduceMotion={app.settings.reduceMotion} flat={app.settings.highContrast} />
-  </div>
+      reduceMotion={app.settings.reduceMotion} flat={app.settings.highContrast} speed={app.settings.orbSpeed} />
+  </button>
   <p class="status" aria-live="polite">{status}</p>
   <p class="hint">{hint}</p>
 </section>
@@ -50,7 +52,9 @@
   .title { font-size: 30px; font-weight: 300; margin-top: 12px; line-height: 1.2; }
   .edited { color: var(--dim); font-size: .8em; }
   .meta { color: var(--dim); font-size: 14px; margin-top: 2px; }
-  .orb { flex: 1; width: 100%; min-height: 200px; }
+  .orb { flex: 1; width: 100%; min-height: 200px; background: none; border: 0; padding: 0; cursor: pointer; border-radius: 24px;
+    -webkit-tap-highlight-color: transparent; }
+  .orb:focus-visible { outline: 2px solid var(--focus); outline-offset: -6px; }
   .status { color: var(--dim); }
   .hint { color: var(--faint); font-size: 12.5px; margin-top: 2px; }
   .banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 10px 14px;

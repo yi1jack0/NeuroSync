@@ -21,6 +21,14 @@ export function bandForFrequency(hz: number): Band {
   return hz < BANDS[0]!.low ? BANDS[0]! : BANDS[BANDS.length - 1]!;
 }
 
+/** Orb speeds the user cycles through by clicking the orb. Every ceiling stays <= 1.25 Hz,
+ *  so even "Lively" can never become a flicker. drift scales the floating motion. */
+export const ORB_SPEEDS = [
+  { name: 'Slow', ceiling: 0.3, drift: 0.55 },
+  { name: 'Calm', ceiling: 0.6, drift: 1 },
+  { name: 'Lively', ceiling: 1.25, drift: 1.8 },
+] as const;
+
 /** Fold the beat down by octaves to a calm visual rate (never a flicker: photosensitivity). */
 export function visualPulseHz(beatHz: number, ceiling = 1.25): number {
   let hz = Math.max(beatHz, 0.05);

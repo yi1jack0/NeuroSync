@@ -4,7 +4,7 @@ import presetsJson from '../generated/presets.json';
 import { Engine, type EngineState } from '../audio/engine';
 import { CATALOG, findSound, setLocalSoundLoader } from '../audio/buffers';
 import { canChooseOutput, listOutputDevices, type OutputDevice } from '../audio/platform';
-import { type Band, band, bandForFrequency } from '../domain/bands';
+import { type Band, band, bandForFrequency, ORB_SPEEDS } from '../domain/bands';
 import { gainToSlider, sliderToGain } from '../domain/limits';
 import {
   ASSET_PREFIX, binauralChannel, binauralOf, type ChannelConfig, clonePreset, LOCAL_PREFIX, parseChannel,
@@ -273,6 +273,11 @@ class AppState {
     this.toast(ok || !id ? `Output: ${name}` : "Couldn't switch output device");
   }
   setPref<K extends 'highContrast' | 'reduceMotion'>(key: K, value: boolean) { this.settings[key] = value; this.save(); }
+  cycleOrbSpeed() {
+    this.settings.orbSpeed = (this.settings.orbSpeed + 1) % ORB_SPEEDS.length;
+    this.save();
+    this.toast(`Orb speed: ${ORB_SPEEDS[this.settings.orbSpeed]!.name}`);
+  }
   acceptDisclaimer() { this.settings.disclaimerAccepted = true; this.save(); this.dialog = 'none'; }
   async install() { await this.installPrompt?.prompt(); this.installPrompt = null; }
 
