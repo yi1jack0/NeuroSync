@@ -137,7 +137,7 @@
     .row { min-height: 250px; }
     .tip { display: none; }
   }
-  @media (max-width: 767px) {
+  @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {
     .mix, .mix.open { max-height: none; border-radius: var(--radius); }
     .drawer-handle { display: none; }
     .body { flex-direction: column; justify-content: flex-start; gap: 10px; }

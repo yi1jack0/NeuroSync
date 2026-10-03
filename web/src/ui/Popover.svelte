@@ -32,7 +32,7 @@
   .pop { top: calc(100% + 8px); }
   .pop.up { top: auto; bottom: calc(100% + 8px); }
   .end { right: 0; } .start { left: 0; } .center { left: 50%; transform: translateX(-50%); }
-  @media (max-width: 767px) {
+  @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {
     .pop { position: fixed; left: 10px !important; right: 10px !important; top: auto !important; bottom: calc(76px + env(safe-area-inset-bottom)) !important;
       transform: none !important; max-height: 70dvh; overflow: auto; }
   }

@@ -16,6 +16,23 @@
     root.style.setProperty('--accent', app.settings.highContrast ? '#FFFF00' : app.band.color);
     document.querySelector('meta[name=theme-color]')?.setAttribute('content', app.settings.highContrast ? '#000000' : '#121417');
   });
+  // Android back gesture / browser back: close the open tab, drawer or dialog instead of leaving.
+  let backEntry = false;
+  let ignorePop = false;
+  const somethingOpen = $derived(app.tab !== 'now' || app.libraryOpen || app.dialog === 'shortcuts');
+  $effect(() => {
+    if (somethingOpen && !backEntry) { history.pushState({ nsOverlay: true }, ''); backEntry = true; }
+    else if (!somethingOpen && backEntry) { backEntry = false; ignorePop = true; history.back(); }
+  });
+  function onPop() {
+    if (ignorePop) { ignorePop = false; return; }
+    if (!backEntry) return;
+    backEntry = false;
+    if (app.dialog === 'shortcuts') app.dialog = 'none';
+    else if (app.libraryOpen) app.libraryOpen = false;
+    else app.tab = 'now';
+  }
+
   $effect(() => { document.title = app.isPlaying ? t('title.playing', { name: i18n.name(app.draft.name) }) : t('title.idle'); });
 
   function onKey(e: KeyboardEvent) {
@@ -40,7 +57,7 @@
   const TABS: [Tab, Key, string][] = [['library', 'tab.library', 'library'], ['now', 'tab.now', 'now'], ['mixer', 'tab.mixer', 'mixer']];
 </script>
 
-<svelte:window onkeydown={onKey} />
+<svelte:window onkeydown={onKey} onpopstate={onPop} />
 <div class="aurora" aria-hidden="true"></div>
 <main class="app" data-tab={app.tab}>
   <TopBar />

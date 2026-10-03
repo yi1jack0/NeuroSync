@@ -50,7 +50,11 @@ button { cursor: pointer; }
 .hc .aurora { display: none; }
 
 .glass { background: var(--panel); border: 1px solid var(--line); border-top-color: var(--line-top);
-  border-radius: var(--radius); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); }
+  border-radius: var(--radius); position: relative; isolation: isolate; }
+/* The blur lives on a pseudo-layer: backdrop-filter on the element itself would make it the
+   containing block for position:fixed children (phone menus would be placed off-screen). */
+.glass::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); }
 .caps { font-size: 11px; font-weight: 600; letter-spacing: 1.6px; color: var(--dim); text-transform: uppercase; }
 .faint { color: var(--faint); font-size: 12px; }
 .mono { font-family: var(--mono); }
@@ -66,7 +70,9 @@ button { cursor: pointer; }
 .icon-btn svg, .btn svg { width: 18px; height: 18px; }
 
 /* ---------------------------------------------------------------- shell */
-.app { height: 100dvh; display: grid; gap: 14px; padding: 16px;
+.app { height: 100dvh; display: grid; gap: 14px;
+  /* camera cut-out / gesture bar (Galaxy S25 etc.): never draw under them */
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   grid-template-columns: 258px minmax(0, 1fr) 400px; grid-template-rows: 72px minmax(0, 1fr);
   grid-template-areas: "top top top" "lib stage mix"; }
 .region-top { grid-area: top; position: relative; z-index: 20; }   /* its popovers must float above the panels */
@@ -120,7 +126,7 @@ a.menu-item { color: inherit; text-decoration: none; }
 }
 
 /* ---------------------------------------------------------------- phone */
-@media (max-width: 767px) {
+@media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {
   .app { padding: 10px 10px 0; gap: 10px; grid-template-rows: 54px minmax(0, 1fr) auto;
     grid-template-areas: "top" "main" "tabs"; }
   .region-stage, .region-mix { grid-area: main; }
@@ -136,6 +142,22 @@ a.menu-item { color: inherit; text-decoration: none; }
   .tabbar button[aria-selected="true"] { color: var(--accent); }
   .tabbar svg { width: 22px; height: 22px; }
   .drawer-handle { display: none; }
+}
+
+/* ---------------------------------------------------------------- phone landscape (e.g. S25 Ultra 845x360) */
+@media (orientation: landscape) and (max-height: 500px) {
+  .app { grid-template-columns: 72px minmax(0, 1fr); grid-template-rows: 50px minmax(0, 1fr);
+    grid-template-areas: "tabs top" "tabs main"; gap: 8px;
+    padding: 6px max(10px, env(safe-area-inset-right)) 6px max(6px, env(safe-area-inset-left)); }
+  .tabbar { flex-direction: column; justify-content: center; gap: 6px; margin: 0; padding: 0; border-top: 0;
+    border-right: 1px solid var(--line); background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .tabbar button { min-width: 0; width: 64px; }
+}
+
+/* touch screens: 44 px minimum targets */
+@media (pointer: coarse) {
+  .icon-btn { width: 44px; height: 44px; }
+  .menu-item { min-height: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

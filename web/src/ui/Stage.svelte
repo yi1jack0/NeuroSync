@@ -60,7 +60,19 @@
   .hint { color: var(--faint); font-size: 12.5px; margin-top: 2px; }
   .banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 10px 14px;
     margin-bottom: 14px; border-radius: 12px; background: var(--surface); }
-  @media (max-width: 767px) {
+  @media (orientation: landscape) and (max-height: 500px) {
+    /* info on the left, orb on the right: uses the wide, short screen */
+    .stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-rows: auto auto auto 1fr auto;
+      column-gap: 12px; align-items: center; padding: 4px; text-align: left; }
+    .stage > :global(*) { grid-column: 1; }
+    .chip { justify-self: start; grid-row: 2; }
+    .title { font-size: 22px; margin-top: 6px; grid-row: 3; }
+    .meta { grid-row: 4; align-self: start; }
+    .status { grid-row: 5; }
+    .orb { grid-column: 2; grid-row: 1 / 6; height: 100%; min-height: 0; }
+    .banner { grid-row: 1; grid-column: 1 / 3; margin-bottom: 4px; }
+  }
+  @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {
     .stage { padding: 12px 4px; } .title { font-size: 24px; } .hint { display: none; }
   }
 </style>

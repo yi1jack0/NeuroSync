@@ -19,5 +19,5 @@
   i { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
   button { background: none; border: 0; color: var(--accent); font-weight: 600; padding: 4px 8px; }
   @media (max-width: 1199px) { .toasts { bottom: auto; top: 90px; } }
-  @media (max-width: 767px) { .toasts { top: auto; bottom: calc(80px + env(safe-area-inset-bottom)); } }
+  @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) { .toasts { top: auto; bottom: calc(80px + env(safe-area-inset-bottom)); } }
 </style>

@@ -56,7 +56,7 @@
   .pan { width: 64px; height: 24px; --p: 50%; }
   .mute { width: 36px; height: 36px; }
   @media (max-width: 1199px) { .fader { min-height: 96px; max-height: 130px; } }
-  @media (max-width: 767px) {
+  @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {
     .strip { width: 100%; flex-direction: row; flex-wrap: wrap; padding: 6px 10px 6px 12px; gap: 4px 10px; min-height: 52px; }
     .head { display: none; }
     .lbl { width: 84px; min-height: 0; text-align: left; justify-content: flex-start; order: 1; }
@@ -70,7 +70,7 @@
     .head:has(.rm) { display: contents; }
     .head:has(.rm) .ic { display: none; }
   }
-  @media (max-width: 767px) {
+  @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {
     .fader input::-webkit-slider-runnable-track { width: auto; height: 6px;
       background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 35%, transparent), var(--accent) var(--p), rgba(255,255,255,.09) var(--p)); }
     .fader input::-webkit-slider-thumb { margin-left: 0; margin-top: -9px; width: 24px; height: 24px; }

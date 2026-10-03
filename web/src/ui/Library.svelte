@@ -91,5 +91,5 @@
   .foot { text-align: center; }
   @media (hover: none) { .more { opacity: 1; } }
   @media (max-width: 1199px) { .close { display: inline-grid; } }
-  @media (max-width: 767px) { .close { display: none; } .lib { border-radius: var(--radius); } }
+  @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) { .close { display: none; } .lib { border-radius: var(--radius); } }
 </style>

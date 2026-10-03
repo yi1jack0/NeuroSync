@@ -15,6 +15,7 @@ import { idbDelete, idbGet, idbGetAll, idbPut } from '../lib/idb';
 import { loadSettings, saveSettings, type Settings } from '../lib/settings';
 import { decodePreset, presetTokenFromHash, shareable, shareUrl } from '../lib/share';
 import { detectLang, i18n, type Lang, LANGS, t } from '../lib/i18n.svelte';
+import { haptic } from '../lib/haptics';
 
 export const BUILTIN: readonly Preset[] = (presetsJson as unknown[]).map(parsePreset);
 export type Tab = 'library' | 'now' | 'mixer';
@@ -132,6 +133,7 @@ class AppState {
     const cur = this.draft.channels[index];
     if (!cur) return;
     const next = parseChannel({ ...$state.snapshot(cur), ...changes });   // re-applies safety clamps
+    if (cur.kind === 'binaural' && bandForFrequency(cur.beat_hz) !== bandForFrequency(next.beat_hz)) haptic(12);   // crossed a band
     this.draft.channels[index] = next;
     this.engine.apply(index, next);
     this.pushDraft();
@@ -287,6 +289,7 @@ class AppState {
   setPref<K extends 'highContrast' | 'reduceMotion'>(key: K, value: boolean) { this.settings[key] = value; this.save(); }
   cycleOrbSpeed() {
     this.settings.orbSpeed = (this.settings.orbSpeed + 1) % ORB_SPEEDS.length;
+    haptic(8);
     this.save();
     this.toast(t('ts.orb', { name: t(`speed.${ORB_SPEEDS[this.settings.orbSpeed]!.name}`) }));
   }

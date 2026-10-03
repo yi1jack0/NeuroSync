@@ -130,6 +130,10 @@
 
 <style>
   .top { display: flex; align-items: center; gap: 10px; padding: 0 14px 0 18px; border-radius: 14px; }
+  @media (orientation: landscape) and (max-height: 500px) {
+    .play { width: 40px !important; height: 40px !important; box-shadow: 0 0 0 4px var(--accent-soft) !important; }
+    .brand { font-size: 14px !important; }
+  }
   .brand { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; letter-spacing: .4px; white-space: nowrap; }
   .brand b { font-weight: 300; color: var(--accent); }
   .dot-orb { width: 24px; height: 24px; border-radius: 50%; flex: none;
@@ -166,7 +170,7 @@
     .offline span, .mutebtn { display: none; }
     .master { width: 110px; } .device span { display: none; }
   }
-  @media (max-width: 767px) {
+  @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {
     .top { padding: 0 4px 0 6px; gap: 4px; }
     .hide-phone { display: none !important; }
     .phone-only { display: flex; }
