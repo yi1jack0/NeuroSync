@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroSync Web — layout mockup</title>
+<!-- Static design prototype (no behaviour). Rendered at 1440 / 834 / 390 px for docs/screenshots/web-*.png -->
+<style>
+:root{
+  --bg:#121417; --bg-deep:#0B0C0E; --text:#E9ECF1; --dim:#9AA3AF; --faint:#5E6672;
+  --panel:rgba(255,255,255,.045); --panel-hover:rgba(255,255,255,.08);
+  --line:rgba(255,255,255,.08); --line-top:rgba(255,255,255,.14);
+  --delta:#7B61FF; --theta:#B18CFF; --alpha:#2DD4E8; --beta:#3EE0A1; --gamma:#F7B955;
+  --accent:var(--alpha); --accent-soft:rgba(45,212,232,.16); --accent-line:rgba(45,212,232,.45);
+  --radius:16px; --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font:14px/1.4 "Segoe UI Variable Text","Segoe UI",Inter,system-ui,sans-serif;color:var(--text);
+  background:var(--bg);overflow:hidden}
+/* aurora backdrop */
+body::before{content:"";position:fixed;inset:0;z-index:-1;
+  background:
+   radial-gradient(60vmax 60vmax at 50% 46%, rgba(45,212,232,.16), transparent 60%),
+   radial-gradient(40vmax 40vmax at 10% 0%, rgba(80,140,255,.08), transparent 60%),
+   radial-gradient(45vmax 45vmax at 100% 100%, rgba(62,224,161,.06), transparent 60%),
+   radial-gradient(120vmax 90vmax at 50% 50%, transparent 55%, var(--bg-deep));}
+.glass{background:var(--panel);border:1px solid var(--line);border-top-color:var(--line-top);
+  border-radius:var(--radius);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%)}
+.caps{font-size:11px;font-weight:600;letter-spacing:1.6px;color:var(--dim);text-transform:uppercase}
+.faint{color:var(--faint);font-size:12px}
+.mono{font-family:var(--mono)}
+button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 14px;cursor:pointer}
+.icon{width:36px;height:36px;padding:0;display:grid;place-items:center;background:transparent;border-color:transparent}
+svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- app shell ---------- */
+.app{height:100vh;display:grid;gap:14px;padding:16px;
+  grid-template-columns:258px 1fr 400px;grid-template-rows:72px 1fr;
+  grid-template-areas:"top top top" "lib stage mix"}
+.top{grid-area:top;display:flex;align-items:center;gap:10px;padding:0 14px 0 18px;border-radius:14px}
+.lib{grid-area:lib;padding:16px 12px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.stage{grid-area:stage;display:flex;flex-direction:column;align-items:center;padding:22px 8px 18px}
+.mix{grid-area:mix;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+
+/* top bar */
+.brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;letter-spacing:.4px}
+.brand b{font-weight:300;color:var(--accent)}
+.dot-orb{width:24px;height:24px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #c8f6fb, var(--accent) 45%, #0b4650 100%)}
+.spacer{flex:1}
+.play{width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);display:grid;place-items:center;
+  box-shadow:0 0 0 6px rgba(45,212,232,.08),0 6px 30px rgba(45,212,232,.35)}
+.play svg{fill:#0B0C0E;stroke:none;width:22px;height:22px}
+.count{font-family:var(--mono);color:var(--accent);font-size:15px;min-width:60px}
+.range-h{appearance:none;width:150px;height:6px;border-radius:3px;
+  background:linear-gradient(90deg,rgba(45,212,232,.35),var(--accent) 59%,rgba(255,255,255,.09) 59%)}
+.range-h::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:#F4F6F9;border:2.2px solid var(--accent);box-shadow:0 0 14px rgba(45,212,232,.6)}
+.pct{font-family:var(--mono);font-weight:600;width:42px}
+.select{display:flex;align-items:center;gap:8px;padding:7px 12px;min-width:200px;justify-content:space-between}
+.offline{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)}
+.offline i{width:7px;height:7px;border-radius:50%;background:var(--beta);box-shadow:0 0 8px var(--beta)}
+
+/* library */
+.search{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--faint)}
+.group{margin-top:8px;padding-left:12px;font-size:10.5px;font-weight:700;letter-spacing:1.6px;color:var(--faint)}
+.item{display:flex;gap:12px;align-items:center;padding:8px 12px;border-radius:10px;position:relative}
+.item i{width:8px;height:8px;border-radius:50%;flex:none;box-shadow:0 0 0 4px color-mix(in srgb,currentColor 22%,transparent)}
+.item small{display:block;color:var(--dim);font-size:11.5px}
+.item.on{background:var(--accent-soft)}
+.item.on::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:2px;background:var(--accent)}
+
+/* stage */
+.chip{color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:12px;
+  padding:3px 12px;font-size:12px;font-weight:600;letter-spacing:1px}
+.title{font-size:30px;font-weight:300;margin-top:12px}
+.meta{color:var(--dim);font-size:14px;margin-top:2px}
+.orbwrap{flex:1;width:100%;display:grid;place-items:center;position:relative;min-height:220px}
+.orb{--r:min(38vh,34vw,320px);width:calc(var(--r)*.62);aspect-ratio:1;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 34% 30%, #d6fbff 0%, #6fe8f4 18%, var(--accent) 45%, #0c5560 85%, #06303a 100%);
+  box-shadow:0 0 120px 30px rgba(45,212,232,.25)}
+.ring{position:absolute;border-radius:50%;border:1.4px solid rgba(45,212,232,.28);inset:-18%}
+.ring.r2{inset:-42%;border-color:rgba(45,212,232,.15)}
+.ring.r3{inset:-62%;border-color:rgba(255,255,255,.07);border-width:1px}
+.status{color:var(--dim)} .hint{color:var(--faint);font-size:12.5px;margin-top:2px}
+
+/* mixer */
+.mixhead{display:flex;align-items:center;justify-content:space-between;height:36px}
+.btn-primary{background:var(--accent);color:#0B0C0E;border:none;font-weight:600}
+.row{display:flex;gap:8px}
+.strip{width:84px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.strip.gen{background:rgba(45,212,232,.06);border-color:rgba(45,212,232,.22)}
+.strip .lbl{font-size:11.5px;color:var(--dim);text-align:center}
+.strip .val{font-family:var(--mono);font-weight:600;font-size:14px}
+.strip .band{font-size:10.5px;font-weight:700;letter-spacing:1px;color:var(--alpha)}
+.vfader{position:relative;width:6px;height:150px;border-radius:3px;background:rgba(255,255,255,.09);margin:6px 0}
+.vfader b{position:absolute;left:0;right:0;bottom:0;border-radius:3px;background:linear-gradient(0deg,rgba(45,212,232,.35),var(--accent))}
+.vfader u{position:absolute;left:50%;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:#F4F6F9;border:2.2px solid var(--accent)}
+.amb .vfader{height:120px}
+.hpan{width:60px;height:4px;border-radius:2px;background:rgba(255,255,255,.09);position:relative}
+.hpan u{position:absolute;top:-6px;width:14px;height:14px;border-radius:50%;background:#F4F6F9;border:2px solid var(--accent);left:23px}
+.divider{height:1px;background:var(--line)}
+.addbtn{background:transparent;border:1px dashed var(--line-top);color:var(--dim)}
+
+/* toast + phone-only parts hidden on desktop */
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);display:flex;gap:12px;align-items:center;
+  padding:10px 16px;border-radius:12px;background:#1E2228;border:1px solid var(--line-top)}
+.toast i{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.tabbar,.mini,.peek,.burger{display:none}
+
+/* ---------- tablet: library drawer + mixer bottom drawer ---------- */
+@media (max-width:1199px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:64px minmax(0,1fr) auto;grid-template-areas:"top" "stage" "mix"}
+  .offline span,.top .mutebtn{display:none} .range-h{width:110px}
+  .lib{display:none}
+  .burger{display:grid}
+  .select{min-width:0} .select span{display:none}
+  .mix{border-radius:22px 22px var(--radius) var(--radius);padding-top:8px}
+  .peek{display:block;width:44px;height:5px;border-radius:3px;background:var(--line-top);margin:2px auto 6px}
+  .mix .gen-row,.mix .amb-row{justify-content:center}
+  .mixbody{display:flex;gap:18px;align-items:flex-start;justify-content:center}
+  .mixbody .divider{width:1px;height:auto;align-self:stretch}
+  .vfader{height:110px} .amb .vfader{height:110px}
+  .toast{bottom:auto;top:96px}
+}
+
+/* ---------- phone: tabs + mini transport, horizontal faders ---------- */
+@media (max-width:767px){
+  .app{padding:10px 10px 0;gap:10px;grid-template-rows:52px minmax(0,1fr) auto;grid-template-areas:"top" "stage" "tabs"}
+  .mix{display:none}
+  html.tab-mixer .stage{display:none}
+  html.tab-mixer .mix{display:flex;grid-area:stage;overflow:auto}
+  html.tab-mixer .peek{display:none}
+  .mixbody{align-items:stretch}
+  .strip .val{order:3}
+  .top{padding:0 4px 0 8px;gap:4px} .top .hide-phone{display:none} .brand{font-size:15px;gap:8px} .count{min-width:0}
+  .stage{padding:8px 4px}
+  .title{font-size:24px}
+  .orb{--r:min(30vh,62vw)}
+  .mix{padding:10px 12px 12px;gap:8px}
+  .mixbody{flex-direction:column;gap:8px}
+  .mixbody .divider{width:auto;height:1px}
+  .row{flex-direction:column;gap:6px;width:100%}
+  .strip{width:100%;flex-direction:row;padding:8px 12px;gap:10px;min-height:44px}
+  .strip .lbl{width:74px;text-align:left} .strip .val{width:64px;text-align:right;font-size:13px}
+  .strip .band,.strip svg.ic,.hpan,.strip .mute{display:none}
+  .vfader,.amb .vfader{width:auto;flex:1;height:6px;margin:0}
+  .vfader b{top:0;right:auto;bottom:0;height:auto!important;width:var(--p)}
+  .vfader u{bottom:auto!important;top:50%;margin-top:-11px;left:var(--p);margin-left:-11px;width:22px;height:22px}
+  .mixhead .caps{font-size:10px}
+  .mini{display:flex}
+  .tabbar{grid-area:tabs;display:flex;justify-content:space-around;padding:8px 0 14px;border-top:1px solid var(--line);
+    margin:0 -10px;background:rgba(10,11,13,.75);backdrop-filter:blur(16px)}
+  .tabbar div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--dim);min-width:64px}
+  .tabbar .tab-now,html.tab-mixer .tabbar .tab-mix{color:var(--accent)}
+  html.tab-mixer .tabbar .tab-now{color:var(--dim)}
+  .toast{display:none}
+  .play{width:44px;height:44px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+
+  <header class="top glass" aria-label="Transport">
+    <button class="icon burger" aria-label="Library"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div class="brand"><span class="dot-orb"></span><span>Neuro<b>Sync</b></span></div>
+    <div class="spacer"></div>
+    <button class="icon hide-phone" aria-label="Stop"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" stroke="none"/></svg></button>
+    <button class="play" aria-label="Pause"><svg viewBox="0 0 24 24"><rect x="7" y="5.5" width="3.6" height="13" rx="1.2"/><rect x="13.4" y="5.5" width="3.6" height="13" rx="1.2"/></svg></button>
+    <button class="icon" aria-label="Sleep timer"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5"/><path d="M12 13V9M12 13l2.5 1.5M10 3.5h4"/></svg></button>
+    <span class="count">44:58</span>
+    <div class="spacer"></div>
+    <div class="offline hide-phone" title="Offline ready"><i></i><span>Offline ready</span></div>
+    <button class="icon hide-phone mutebtn" aria-label="Mute"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
+    <input class="range-h hide-phone" type="range" value="59" aria-label="Master volume">
+    <span class="pct hide-phone">59%</span>
+    <button class="select hide-phone" aria-label="Output device"><span>Headphones (Modi+ DAC)</span><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></svg></button>
+    <button class="icon" aria-label="Menu"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="12" r="1" fill="currentColor"/></svg></button>
+  </header>
+
+  <nav class="lib glass" aria-label="Preset library">
+    <div class="caps" style="display:flex;justify-content:space-between;padding-left:6px">Library <span>＋</span></div>
+    <div class="search">Search presets</div>
+    <div class="group">SLEEP</div>
+    <div class="item" style="color:var(--delta)"><i style="background:var(--delta)"></i><div style="color:var(--text)">Delta Sleep<small>Delta · 2 Hz</small></div></div>
+    <div class="item" style="color:var(--delta)"><i style="background:var(--delta)"></i><div style="color:var(--text)">Ocean Night<small>Delta · 2.5 Hz</small></div></div>
+    <div class="group">MEDITATE</div>
+    <div class="item" style="color:var(--theta)"><i style="background:var(--theta)"></i><div style="color:var(--text)">Seaside Meditation<small>Theta · 6 Hz</small></div></div>
+    <div class="group">FOCUS</div>
+    <div class="item on" style="color:var(--alpha)"><i style="background:var(--alpha)"></i><div style="color:var(--text)">River Focus<small>Alpha · 10 Hz</small></div></div>
+    <div class="item" style="color:var(--beta)"><i style="background:var(--beta)"></i><div style="color:var(--text)">Beta Concentration<small>Beta · 18 Hz</small></div></div>
+    <div class="group">MY PRESETS</div>
+    <div class="item" style="color:var(--alpha)"><i style="background:var(--alpha)"></i><div style="color:var(--text)">Deep Work Rain<small>Alpha · 10.5 Hz</small></div></div>
+    <div class="spacer"></div>
+    <div class="faint" style="text-align:center">Share a preset: ⋯ → Copy link</div>
+  </nav>
+
+  <section class="stage" aria-label="Now playing">
+    <span class="chip">ALPHA · 8–14 Hz</span>
+    <h1 class="title">River Focus</h1>
+    <p class="meta">200 Hz carrier · 10 Hz beat</p>
+    <div class="orbwrap"><div class="orb"><span class="ring"></span><span class="ring r2"></span><span class="ring r3"></span></div></div>
+    <p class="status">Playing · 44:58 remaining</p>
+    <p class="hint">Space to pause · F1 for shortcuts</p>
+  </section>
+
+  <aside class="mix glass" aria-label="Mixer">
+    <span class="peek"></span>
+    <div class="mixhead"><span class="caps">Mixer</span><button class="btn-primary">Save as preset</button></div>
+    <div class="mixbody">
+      <div>
+        <div class="caps" style="margin-bottom:8px">Custom generator</div>
+        <div class="row gen-row">
+          <div class="strip gen"><svg class="ic" viewBox="0 0 24 24" style="color:var(--accent)"><path d="M3 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0"/></svg><span class="lbl">Base</span><span class="val">200 Hz</span><div class="vfader" style="--p:16%"><b style="height:16%;width:var(--w,auto)"></b><u style="bottom:calc(16% - 9px)"></u></div></div>
+          <div class="strip gen"><svg class="ic" viewBox="0 0 24 24" style="color:var(--accent)"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg><span class="lbl">Beat</span><span class="val">10.0 Hz</span><span class="band">ALPHA</span><div class="vfader" style="--p:25%"><b style="height:25%"></b><u style="bottom:calc(25% - 9px)"></u></div></div>
+          <div class="strip gen"><svg class="ic" viewBox="0 0 24 24" style="color:var(--accent)"><path d="M4 16a8 8 0 0 1 16 0"/><rect x="3.5" y="12" width="4" height="7" rx="1.5"/><rect x="16.5" y="12" width="4" height="7" rx="1.5"/></svg><span class="lbl">Tone</span><span class="val">35%</span><div class="vfader" style="--p:35%"><b style="height:35%"></b><u style="bottom:calc(35% - 9px)"></u></div><svg class="mute" viewBox="0 0 24 24" style="color:var(--dim)"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/></svg></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div class="caps" style="display:flex;justify-content:space-between;margin-bottom:8px">Ambience <span style="color:var(--text);letter-spacing:0;font-weight:400;text-transform:none">＋ Add sound</span></div>
+        <div class="row amb-row">
+          <div class="strip amb"><svg class="ic" viewBox="0 0 24 24" style="color:var(--accent)"><path d="M3 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0"/></svg><span class="lbl">Gentle River</span><span class="val">42%</span><div class="vfader" style="--p:42%"><b style="height:42%"></b><u style="bottom:calc(42% - 9px)"></u></div><div class="hpan"><u></u></div></div>
+          <div class="strip amb"><svg class="ic" viewBox="0 0 24 24" style="color:var(--accent)"><path d="M5 8v8M8 6v12M11 9v6M14 5v14M17 8v8"/></svg><span class="lbl">Pink Noise</span><span class="val">20%</span><div class="vfader" style="--p:20%"><b style="height:20%"></b><u style="bottom:calc(20% - 9px)"></u></div><div class="hpan"><u></u></div></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <nav class="tabbar" aria-label="Sections">
+    <div><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Library</div>
+    <div class="tab-now"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/></svg>Now</div>
+    <div class="tab-mix"><svg viewBox="0 0 24 24"><path d="M6 4v16M12 4v16M18 4v16"/><circle cx="6" cy="14" r="2" fill="#121417"/><circle cx="12" cy="8" r="2" fill="#121417"/><circle cx="18" cy="16" r="2" fill="#121417"/></svg>Mixer</div>
+  </nav>
+</main>
+<div class="toast"><i></i>Saved “Deep Work Rain” to My Presets</div>
+<script>if(location.hash==='#mixer')document.documentElement.classList.add('tab-mixer')</script>
+</body>
+</html>
