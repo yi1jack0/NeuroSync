@@ -73,7 +73,7 @@ export interface PourOptions { seed?: number; scale?: number; brightness?: numbe
 export function renderPour(w: number, h: number, o: PourOptions = {}): ImageData {
   // Defaults chosen from side-by-side variants: calm, dark centre (orb + text sit on deep Prussian),
   // turquoise rivers and gold lacing toward the edges.
-  const { seed = 42, scale = 1.7, brightness = 0.78, octaves = 3, warp = 3.6, warp2 = 2.4, zoom = 1.6, soft = 1 } = o;
+  const { seed = 42, scale = 1.7, brightness = 0.78, octaves = 3, warp = 3.6, warp2 = 2.4, zoom = 2.56, soft = 1 } = o;   // background: 160% x 160%
   const field = makeNoise(seed, octaves, warp, warp2);
   const img = new ImageData(w, h);
   const hts = new Float32Array((w + 2) * (h + 2));
