@@ -68,21 +68,23 @@ function paint(h: number, detail: number): RGB {
  * which suits the soft, wet look). Light comes from the upper left; specular highlights give
  * the glossy sheen; a vignette keeps the edges dark for night use.
  */
-export interface PourOptions { seed?: number; scale?: number; brightness?: number; octaves?: number; warp?: number; warp2?: number }
+/** zoom > 1 magnifies the painting around its centre (same composition, larger and calmer flows). */
+export interface PourOptions { seed?: number; scale?: number; brightness?: number; octaves?: number; warp?: number; warp2?: number; zoom?: number }
 export function renderPour(w: number, h: number, o: PourOptions = {}): ImageData {
   // Defaults chosen from side-by-side variants: calm, dark centre (orb + text sit on deep Prussian),
   // turquoise rivers and gold lacing toward the edges.
-  const { seed = 42, scale = 1.7, brightness = 0.78, octaves = 3, warp = 3.6, warp2 = 2.4 } = o;
+  const { seed = 42, scale = 1.7, brightness = 0.78, octaves = 3, warp = 3.6, warp2 = 2.4, zoom = 1.6 } = o;
   const field = makeNoise(seed, octaves, warp, warp2);
   const img = new ImageData(w, h);
   const hts = new Float32Array((w + 2) * (h + 2));
   const aspect = h / w;
   for (let y = -1; y <= h; y++)
-    for (let x = -1; x <= w; x++) hts[(y + 1) * (w + 2) + (x + 1)] = field((x / w) * scale, (y / h) * scale * aspect);
+    for (let x = -1; x <= w; x++)
+      hts[(y + 1) * (w + 2) + (x + 1)] = field(((x / w - 0.5) / zoom + 0.5) * scale, ((y / h - 0.5) / zoom + 0.5) * scale * aspect);
   const L = [-0.45, -0.62, 0.64];
   const Ln = Math.hypot(L[0]!, L[1]!, L[2]!);
   const lx = L[0]! / Ln, ly = L[1]! / Ln, lz = L[2]! / Ln;
-  const bump = Math.max(w, h) * 1.1;
+  const bump = Math.max(w, h) * 1.1 * zoom;   // keep the same wet sheen when magnified
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const i = (y + 1) * (w + 2) + (x + 1);
@@ -111,6 +113,6 @@ export function renderPour(w: number, h: number, o: PourOptions = {}): ImageData
 export function marbleTexture(size: number, seed = 777): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = c.height = size;
-  c.getContext('2d')!.putImageData(renderPour(size, size, { seed, scale: 1.6, brightness: 1.15, octaves: 4, warp: 4, warp2: 3.5 }), 0, 0);
+  c.getContext('2d')!.putImageData(renderPour(size, size, { seed, scale: 1.6, brightness: 1.15, octaves: 4, warp: 4, warp2: 3.5, zoom: 1.6 }), 0, 0);
   return c;
 }
