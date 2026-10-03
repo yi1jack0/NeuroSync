@@ -17,7 +17,7 @@ export default defineConfig({
     launchOptions: { executablePath, args: ['--autoplay-policy=no-user-gesture-required'] },
   },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1360, height: 860 } } },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1360, height: 860 } }, grepInvert: /@phone/ },
     { name: 'phone', use: { ...devices['Pixel 7'] }, grep: /@phone/ },
   ],
   webServer: { command: `npx vite --port ${PORT} --strictPort`, port: PORT, reuseExistingServer: true },

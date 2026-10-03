@@ -115,6 +115,8 @@ export class Engine {
     this.bus = next;
   }
 
+  /** Keep the preset used for restarts in sync with live edits (no rebuild). */
+  setPreset(preset: Preset) { this.preset = preset; }
   apply(index: number, cfg: ChannelConfig) { this.bus?.apply(index, cfg); }
   async addChannel(cfg: ChannelConfig) { await this.bus?.add(cfg); }
   removeChannel(index: number) { this.bus?.remove(index); }

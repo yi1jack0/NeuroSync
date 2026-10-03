@@ -59,3 +59,21 @@ test('fade-out is logarithmic, monotonic and never shorter than 3 s', async ({ p
   expect(db(env[250])).toBeGreaterThan(-33); expect(db(env[250])).toBeLessThan(-27);   // midpoint ~ -30 dB
   expect(Math.max(...env.slice(402))).toBeLessThan(1e-4);         // silent after the end
 });
+
+test('sleep timer ends playback on its own, with fade, and releases the device', async ({ page }) => {
+  await harness(page);
+  const r = await page.evaluate(() => (window as any).harness.runTimer(0.1, 0));   // 6 s timer, 3 s minimum fade
+  expect(r.states).toContain('playing');
+  expect(r.states.at(-1)).toBe('stopped');
+  expect(r.elapsed).toBeGreaterThan(5.5);
+  expect(r.elapsed).toBeLessThan(8);
+  expect(r.ctxState).toBe('suspended');
+});
+
+test('pausing freezes the countdown; resuming continues it', async ({ page }) => {
+  await harness(page);
+  const r = await page.evaluate(() => (window as any).harness.pauseFreezesTimer());
+  expect(r.a - r.b).toBeLessThan(0.15);      // paused 1.2 s: remaining barely moved
+  expect(r.b - r.c).toBeGreaterThan(0.3);    // running again
+  expect(r.state).toBe('fading');
+});

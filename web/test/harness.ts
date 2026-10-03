@@ -2,6 +2,7 @@
 // Playwright can measure what users would hear.
 import { Bus, outputChain, scheduleFadeOut } from '../src/audio/graph';
 import { parsePreset } from '../src/domain/preset';
+import { Engine } from '../src/audio/engine';
 
 const SR = 48000;
 
@@ -65,5 +66,39 @@ async function renderFade(requestedS: number, at: number, seconds: number) {
   return { end, env };
 }
 
-Object.assign(window, { harness: { renderPreset, renderFade } });
+/** Real-time engine: a short sleep timer must end playback by itself (audio-clock scheduled). */
+async function runTimer(minutes: number, fadeMinutes: number) {
+  const engine = new Engine('direct');
+  await engine.load(parsePreset({ name: 't', band: 'DELTA', channels: [{ kind: 'binaural', name: 'b', base_hz: 150, beat_hz: 2, volume: 0.3 }] }));
+  engine.setTimer(minutes, fadeMinutes);
+  const t0 = performance.now();
+  await engine.play();
+  const states: string[] = [engine.state];
+  engine.subscribe(() => states.push(engine.state));
+  while (engine.state !== 'stopped' && performance.now() - t0 < 30000) {
+    engine.tick();
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  return { elapsed: (performance.now() - t0) / 1000, states, ctxState: engine.context?.state };
+}
+
+/** Pause freezes the countdown (the context clock is suspended). */
+async function pauseFreezesTimer() {
+  const engine = new Engine('direct');
+  await engine.load(parsePreset({ name: 't', band: 'ALPHA', channels: [{ kind: 'binaural', name: 'b', base_hz: 200, beat_hz: 10, volume: 0.3 }] }));
+  engine.setTimer(1, 0);
+  await engine.play();
+  await new Promise((r) => setTimeout(r, 600));
+  await engine.pause();
+  const a = engine.remaining!;
+  await new Promise((r) => setTimeout(r, 1200));
+  const b = engine.remaining!;
+  await engine.play();
+  await new Promise((r) => setTimeout(r, 600));
+  const c = engine.remaining!;
+  await engine.stop();
+  return { a, b, c, state: engine.state };
+}
+
+Object.assign(window, { harness: { renderPreset, renderFade, runTimer, pauseFreezesTimer } });
 document.title = 'harness ready';
