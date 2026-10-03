@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 
 // PROD_URL lets the same suite run against `wrangler dev` (Cloudflare's runtime) or a live deploy.
 const ORIGIN = new URL(process.env.PROD_URL ?? 'http://localhost:4173').origin;
-const ACCEPTED = { masterVolume: 0.5, lastPreset: 'River Focus', disclaimerAccepted: true, fadeMinutes: 5, highContrast: false, reduceMotion: false, sinkId: '' };
+const ACCEPTED = { masterVolume: 0.5, lastPreset: 'River Focus', disclaimerAccepted: true, fadeMinutes: 5, highContrast: false, reduceMotion: false, sinkId: '', lang: 'en', theme: 'classic', langChosen: true, themeChosen: true };
 
 test('works fully offline after the first visit (incl. bundled ambience)', async ({ page, context }) => {
   const violations: string[] = [];

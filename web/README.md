@@ -34,6 +34,8 @@ Hosting: Cloudflare Workers (static assets), configured in `wrangler.jsonc`. Clo
 - run `python tools/export_golden.py` if engine rules changed (CI fails on drift)
 
 **Languages:** English and Simplified Chinese, in `src/lib/i18n.svelte.ts`.
-- First visit follows the browser language; the user can switch from the ⋯ menu or the welcome screen, and the choice is saved.
+- **Default: Simplified Chinese** for every visitor who hasn't picked a language. The user can switch from the ⋯ menu or the welcome screen, and an explicit choice is saved (`langChosen`).
 - Built-in preset and sound names are translated for display only. Stored data keeps the canonical English names, so presets, links and files work across languages.
 - `i18n.test.ts` fails if a Chinese string is missing or its `{placeholders}` differ from the English ones.
+
+**Design:** **Liquid** (pour-art) is the default; Classic is available in ⋯ → Design. An explicit choice is saved (`themeChosen`). Visitors who never chose follow the current defaults.

@@ -6,7 +6,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const ACCEPTED = { masterVolume: 0.5, lastPreset: 'Alpha Focus', disclaimerAccepted: true, fadeMinutes: 5, highContrast: false, reduceMotion: false, sinkId: '' };
+const ACCEPTED = { masterVolume: 0.5, lastPreset: 'Alpha Focus', disclaimerAccepted: true, fadeMinutes: 5, highContrast: false, reduceMotion: false, sinkId: '', lang: 'en', theme: 'classic', langChosen: true, themeChosen: true };
 async function open(page: Page, extra: object = {}) {
   await page.addInitScript((s) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('neurosync.settings.v1', JSON.stringify(s)); sessionStorage.setItem('seeded', '1'); } }, { ...ACCEPTED, ...extra });
   await page.goto('/');
@@ -179,7 +179,7 @@ test.describe('Chinese (Simplified)', () => {
 test.describe('Liquid (pour-art) design', () => {
   const theme = (page: Page) => page.evaluate(() => document.documentElement.dataset.theme);
 
-  test('Classic stays the default; switch to Liquid in the menu, remembered', async ({ page }) => {
+  test('switch from Classic to Liquid in the menu, remembered', async ({ page }) => {
     await open(page);
     expect(await theme(page)).toBe('classic');
     await page.getByRole('button', { name: 'Menu' }).click();
@@ -199,7 +199,7 @@ test.describe('Liquid (pour-art) design', () => {
   });
 
   test('preview link ?theme=pour turns it on (and is removed from the address bar)', async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem('neurosync.settings.v1', JSON.stringify({ disclaimerAccepted: true, lang: 'en' })));
+    await page.addInitScript(() => localStorage.setItem('neurosync.settings.v1', JSON.stringify({ disclaimerAccepted: true, lang: 'en', langChosen: true, theme: 'classic', themeChosen: true })));
     await page.goto('/?theme=pour');
     await expect.poll(() => theme(page)).toBe('pour');
     expect(page.url()).not.toContain('theme=');

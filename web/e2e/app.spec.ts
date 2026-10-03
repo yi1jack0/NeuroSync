@@ -2,7 +2,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
-const ACCEPTED = { masterVolume: 0.5, lastPreset: 'Alpha Focus', disclaimerAccepted: true, fadeMinutes: 5, highContrast: false, reduceMotion: false, sinkId: '' };
+const ACCEPTED = { masterVolume: 0.5, lastPreset: 'Alpha Focus', disclaimerAccepted: true, fadeMinutes: 5, highContrast: false, reduceMotion: false, sinkId: '', lang: 'en', theme: 'classic', langChosen: true, themeChosen: true };
 
 async function open(page: Page, settings: object | null = ACCEPTED, path = '/') {
   await page.addInitScript((s) => { if (s && !sessionStorage.getItem('seeded')) { localStorage.setItem('neurosync.settings.v1', JSON.stringify(s)); sessionStorage.setItem('seeded', '1'); } }, settings);
@@ -14,16 +14,35 @@ const setRange = (page: Page, name: string | RegExp, value: number) =>
     const i = el as HTMLInputElement; i.value = String(v); i.dispatchEvent(new Event('input', { bubbles: true }));
   }, value);
 
-test('first visit: safety notice must be acknowledged before any sound', async ({ page }) => {
-  await open(page, null);
-  const dialog = page.getByRole('dialog', { name: 'Before you begin' });
+test('first visit: Chinese + Liquid by default; safety notice must be acknowledged before any sound', async ({ page }) => {
+  await page.goto('/');
+  const dialog = page.getByRole('dialog', { name: '开始之前' });
   await expect(dialog).toBeVisible();
+  expect(await page.evaluate(() => [document.documentElement.lang, document.documentElement.dataset.theme])).toEqual(['zh-Hans', 'pour']);
   await page.keyboard.press('Escape');                // cannot be dismissed
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', { name: /I understand/ }).click();
+  await dialog.getByRole('button', { name: '我已了解，继续' }).click();
   await expect(dialog).toBeHidden();
   await page.reload();
-  await expect(page.getByRole('dialog', { name: 'Before you begin' })).toBeHidden();   // remembered
+  await expect(page.getByRole('dialog', { name: '开始之前' })).toBeHidden();   // remembered
+});
+
+test('returning visitors who never chose get the new defaults; explicit choices are kept', async ({ page }) => {
+  // Saved by an older version: English + Classic were only the old defaults, never picked.
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('seeded')) return;                     // seed once, not on reload
+    localStorage.setItem('neurosync.settings.v1', JSON.stringify({ disclaimerAccepted: true, lang: 'en', theme: 'classic' }));
+    sessionStorage.setItem('seeded', '1');
+  });
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: '播放' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('pour');
+  await page.getByRole('button', { name: '菜单' }).click();
+  await page.getByRole('radio', { name: 'English' }).click();
+  await page.getByRole('radio', { name: 'Classic' }).click();
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();      // explicit choice kept
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe('classic');
 });
 
 test('workflow 1 — Quick Focus: pick a preset and play; volume is remembered', async ({ page }) => {

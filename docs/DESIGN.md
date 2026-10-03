@@ -96,7 +96,7 @@ app/settings.py   persisted preferences
 Only the Water ambience (river, sea) is bundled so far - rain & café still to come; un-hide the sidebar on
 narrow windows; installer (PyInstaller/MSIX); verify tray + WASAPI on real Windows.
 
-## Web: "Liquid" design (opt-in, pour-art)
+## Web: "Liquid" design (default, pour-art)
 
 Inspired by acrylic pouring with Liquitex colours: **Prussian Blue Hue** (base), **Turquoise Deep**
 (interactive accent) and a trace of **Iridescent Bright Gold** (wordmark, current preset, countdown,
@@ -108,5 +108,5 @@ orb glint).
 - **Orb:** a marbled pour cell swirling inside a glossy shell.
 - **Night use:** low luminance throughout; the e2e test checks that the painting's average luminance is below 70/255.
 
-Choose it in ⋯ → Design → Liquid, or open the preview link `?theme=pour`. Classic stays the default
-until approved. High contrast overrides both.
+Liquid is the **default design** (approved). Classic remains available in ⋯ → Design, or via `?theme=classic`.
+High contrast overrides both. The background pour is zoomed to 260%, and the orb marble to 160% with soft lines.

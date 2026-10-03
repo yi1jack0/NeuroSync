@@ -14,7 +14,7 @@ import { downloadPreset, pickFile, readPresetFile } from '../lib/files';
 import { idbDelete, idbGet, idbGetAll, idbPut } from '../lib/idb';
 import { loadSettings, saveSettings, type Settings } from '../lib/settings';
 import { decodePreset, presetTokenFromHash, shareable, shareUrl } from '../lib/share';
-import { detectLang, i18n, type Lang, LANGS, t } from '../lib/i18n.svelte';
+import { i18n, type Lang, LANGS, t } from '../lib/i18n.svelte';
 import { haptic } from '../lib/haptics';
 
 export const BUILTIN: readonly Preset[] = (presetsJson as unknown[]).map(parsePreset);
@@ -64,19 +64,20 @@ class AppState {
 
   // ------------------------------------------------------------------ boot
   /** Switch UI language (persisted). Stored preset names stay canonical. */
-  setLang(lang: Lang, announce = true) {
+  setLang(lang: Lang, { announce = true, chosen = true } = {}) {
     i18n.lang = lang;
     this.settings.lang = lang;
+    if (chosen) this.settings.langChosen = true;
     this.save();
     document.documentElement.lang = LANGS.find((l) => l.id === lang)!.html;
     this.updateMediaMetadata();
     if (announce) this.toast(t('ts.language'));
   }
 
-  setTheme(theme: 'classic' | 'pour') { this.settings.theme = theme; this.save(); }
+  setTheme(theme: 'classic' | 'pour') { this.settings.theme = theme; this.settings.themeChosen = true; this.save(); }
 
   async init() {
-    this.setLang(this.settings.lang || detectLang(), false);
+    this.setLang(this.settings.lang || 'zh', { announce: false, chosen: false });
     // Preview link: ?theme=pour or ?theme=classic (saved, then removed from the address bar)
     const qs = new URLSearchParams(location.search).get('theme');
     if (qs === 'pour' || qs === 'classic') { this.setTheme(qs); history.replaceState(null, '', location.pathname + location.hash); }

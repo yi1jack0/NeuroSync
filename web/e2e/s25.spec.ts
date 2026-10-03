@@ -3,7 +3,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { S25_ULTRA, S25_ULTRA_APP, S25_ULTRA_LANDSCAPE, S25_ULTRA_LANDSCAPE_APP } from './devices';
 
-const ACCEPTED = { masterVolume: 0.5, lastPreset: 'River Focus', disclaimerAccepted: true, fadeMinutes: 5, highContrast: false, reduceMotion: false, sinkId: '', lang: 'en' };
+const ACCEPTED = { masterVolume: 0.5, lastPreset: 'River Focus', disclaimerAccepted: true, fadeMinutes: 5, highContrast: false, reduceMotion: false, sinkId: '', lang: 'en', theme: 'classic', langChosen: true, themeChosen: true };
 async function open(page: Page) {
   await page.addInitScript((s) => {
     if (!sessionStorage.getItem('seeded')) { localStorage.setItem('neurosync.settings.v1', JSON.stringify(s)); sessionStorage.setItem('seeded', '1'); }

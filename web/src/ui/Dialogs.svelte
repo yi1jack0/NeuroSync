@@ -25,7 +25,7 @@
   {#if first}
     <div class="langs" role="radiogroup" aria-label="Language · 语言">
       {#each LANGS as l (l.id)}
-        <button class="chip" role="radio" aria-checked={app.settings.lang === l.id} lang={l.html} onclick={() => app.setLang(l.id, false)}>{l.label}</button>
+        <button class="chip" role="radio" aria-checked={app.settings.lang === l.id} lang={l.html} onclick={() => app.setLang(l.id, { announce: false })}>{l.label}</button>
       {/each}
     </div>
     <p class="kicker">{t('dlg.welcome')}</p>
