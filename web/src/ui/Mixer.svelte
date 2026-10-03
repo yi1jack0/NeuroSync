@@ -56,7 +56,7 @@
             onchange={(v) => app.updateChannel(genIndex, { base_hz: v })} />
           <Strip label={t('mx.beat')} icon="orb" generator min={BEAT_FREQ_MIN_HZ} max={BEAT_FREQ_MAX_HZ} step={0.1} value={gen.beat_hz}
             fmt={(v) => `${v.toFixed(1)} Hz`} spoken={(v) => t('mx.beatSpoken', { v: v.toFixed(1) })}
-            bandLabel={i18n.bandUpper(bandForFrequency(gen.beat_hz).name)} bandColor={app.settings.highContrast ? '#ff0' : bandForFrequency(gen.beat_hz).color}
+            bandLabel={i18n.bandUpper(bandForFrequency(gen.beat_hz).name)} bandColor={app.settings.highContrast ? '#ff0' : app.colorOf(bandForFrequency(gen.beat_hz))}
             onchange={(v) => app.updateChannel(genIndex, { beat_hz: v })} />
           <Strip label={t('mx.tone')} icon="headphones" generator min={0} max={1} step={0.01} value={gen.volume} fmt={pct} spoken={spokenPct}
             muted={gen.muted} onmute={(m) => app.updateChannel(genIndex, { muted: m })}

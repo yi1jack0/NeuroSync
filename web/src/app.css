@@ -16,6 +16,28 @@
   color-scheme: dark;
   transition: --accent .8s ease;
 }
+/* ---------------------------------------------------------------- Liquid (pour-art) theme
+   Prussian Blue Hue base, Turquoise Deep accent, a trace of Iridescent Bright Gold.
+   Low luminance throughout for night use; no pure white anywhere. */
+:root[data-theme="pour"] {
+  --bg: #08131f; --bg-deep: #050b14; --surface: #0c1b2c;
+  --text: #dbe6ee; --dim: #9fb3c3; --faint: #8aa0b2;
+  --panel: rgba(8, 21, 36, .56); --panel-hover: rgba(46, 120, 140, .16);
+  --line: rgba(150, 200, 220, .10); --line-top: rgba(200, 232, 240, .18);
+  --ok: #2EC4C0; --gold: #D9B45A;
+  --gold-grad: linear-gradient(115deg, #f4e3a1 0%, #d4ab4c 32%, #a97c2a 52%, #ecd283 70%, #a5dccc 88%, #d9b45a 100%);
+}
+:root[data-theme="pour"] .aurora { display: none; }
+:root[data-theme="pour"] .glass {
+  box-shadow: inset 0 1px 0 rgba(220, 240, 248, .06), inset 0 -1px 0 rgba(0, 0, 0, .35), 0 18px 44px rgba(0, 0, 0, .42); }
+:root[data-theme="pour"] .glass::before { backdrop-filter: blur(22px) saturate(125%) brightness(.9); -webkit-backdrop-filter: blur(22px) saturate(125%) brightness(.9); }
+:root[data-theme="pour"] .btn.primary { background: radial-gradient(circle at 30% 25%, #7fe6db, #1fb5ad 50%, #0b7f86 100%); color: #04131c;
+  box-shadow: 0 6px 18px rgba(31, 181, 173, .22), inset 0 -2px 6px rgba(0, 0, 0, .22); }
+:root[data-theme="pour"] input[type=range]::-webkit-slider-thumb {        /* a droplet: pearl with a wet highlight */
+  background: radial-gradient(circle at 35% 30%, #f2f8fa, #c4dbe3 45%, #6f97a8 100%); border-color: var(--accent); }
+:root[data-theme="pour"] input[type=range]::-moz-range-thumb { background: radial-gradient(circle at 35% 30%, #f2f8fa, #c4dbe3 45%, #6f97a8 100%); }
+:root[data-theme="pour"] .tabbar { background: rgba(5, 12, 22, .78); }
+
 :root.hc, :root:has(body.hc) {
   --bg: #000; --bg-deep: #000; --surface: #000; --text: #fff; --dim: #fff; --faint: #d0d0d0;
   --panel: #000; --panel-hover: #1a1a1a; --line: #fff; --line-top: #fff; --accent: #FFFF00 !important; --focus: #FFFF00;
@@ -152,6 +174,7 @@ a.menu-item { color: inherit; text-decoration: none; }
   .tabbar { flex-direction: column; justify-content: center; gap: 6px; margin: 0; padding: 0; border-top: 0;
     border-right: 1px solid var(--line); background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .tabbar button { min-width: 0; width: 64px; }
+  :root[data-theme="pour"] .tabbar { background: transparent; }
 }
 
 /* touch screens: 44 px minimum targets */

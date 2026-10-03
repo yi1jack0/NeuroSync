@@ -175,3 +175,66 @@ test.describe('Chinese (Simplified)', () => {
     await expect(page.getByText('正在播放', { exact: true })).toBeVisible();
   });
 });
+
+test.describe('Liquid (pour-art) design', () => {
+  const theme = (page: Page) => page.evaluate(() => document.documentElement.dataset.theme);
+
+  test('Classic stays the default; switch to Liquid in the menu, remembered', async ({ page }) => {
+    await open(page);
+    expect(await theme(page)).toBe('classic');
+    await page.getByRole('button', { name: 'Menu' }).click();
+    await page.getByRole('radio', { name: 'Liquid' }).click();
+    expect(await theme(page)).toBe('pour');
+    expect(await page.evaluate(() => document.documentElement.style.getPropertyValue('--accent'))).toBe('#1FB5AD');   // turquoise
+    await expect(page.locator('canvas.pour[data-painted="1"]')).toHaveCount(1);
+    const lum = await page.locator('canvas.pour').evaluate((c: HTMLCanvasElement) => {
+      const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
+      let s = 0; for (let i = 0; i < d.length; i += 16) s += 0.2126 * d[i]! + 0.7152 * d[i + 1]! + 0.0722 * d[i + 2]!;
+      return s / (d.length / 16);
+    });
+    expect(lum).toBeGreaterThan(5);            // painted, not blank
+    expect(lum).toBeLessThan(70);              // and night-dark (average luminance out of 255)
+    await page.reload();
+    expect(await theme(page)).toBe('pour');
+  });
+
+  test('preview link ?theme=pour turns it on (and is removed from the address bar)', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('neurosync.settings.v1', JSON.stringify({ disclaimerAccepted: true, lang: 'en' })));
+    await page.goto('/?theme=pour');
+    await expect.poll(() => theme(page)).toBe('pour');
+    expect(page.url()).not.toContain('theme=');
+  });
+
+  test('band still recolours the chip in Liquid (accent stays turquoise)', async ({ page }) => {
+    await open(page, { theme: 'pour' });
+    await setRangeLocal(page, 'Beat', 3);
+    expect(await page.evaluate(() => document.documentElement.style.getPropertyValue('--band'))).toBe('#7C8CE0');   // delta (pour palette)
+    expect(await page.evaluate(() => document.documentElement.style.getPropertyValue('--accent'))).toBe('#1FB5AD');
+  });
+
+  test('no serious accessibility violations in Liquid (incl. contrast)', async ({ page }) => {
+    await open(page, { theme: 'pour' });
+    await page.waitForTimeout(400);
+    expect(await seriousAxe(page)).toEqual([]);
+  });
+
+  test('high contrast overrides Liquid', async ({ page }) => {
+    await open(page, { theme: 'pour', highContrast: true });
+    await expect(page.locator('canvas.pour')).toBeHidden();
+    expect(await page.evaluate(() => document.documentElement.style.getPropertyValue('--accent'))).toBe('#FFFF00');
+  });
+
+  test('@phone Liquid on a phone: every tab accessible, orb renders', async ({ page }) => {
+    await open(page, { theme: 'pour' });
+    for (const tab of ['Now', 'Mixer', 'Library']) {
+      await page.getByRole('tab', { name: tab }).click();
+      expect(await seriousAxe(page), tab).toEqual([]);
+    }
+  });
+});
+
+async function setRangeLocal(page: Page, name: string, value: number) {
+  await page.getByRole('slider', { name, exact: true }).first().evaluate((el, v) => {
+    const i = el as HTMLInputElement; i.value = String(v); i.dispatchEvent(new Event('input', { bubbles: true }));
+  }, value);
+}

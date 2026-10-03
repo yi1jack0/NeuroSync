@@ -114,6 +114,12 @@
       <button class="menu-item" onclick={() => { menuOpen = false; app.toast(t('menu.iosHint')); }}><Icon name="install" />{t('menu.installIos')}</button>
     {/if}
     <div class="menu-sep"></div>
+    <div class="menu-section" id="design-label">{t('menu.design')}</div>
+    <div class="langs" role="radiogroup" aria-labelledby="design-label">
+      {#each [['classic', 'design.classic'], ['pour', 'design.pour']] as const as [id, key] (id)}
+        <button class="chip" role="radio" aria-checked={app.settings.theme === id} onclick={() => app.setTheme(id)}>{t(key)}</button>
+      {/each}
+    </div>
     <div class="menu-section" id="lang-label">{t('menu.language')} · Language</div>
     <div class="langs" role="radiogroup" aria-labelledby="lang-label">
       {#each LANGS as l (l.id)}
@@ -148,6 +154,13 @@
   .spin { width: 20px; height: 20px; border: 2.5px solid #0B0C0E; border-right-color: transparent; border-radius: 50%; animation: s 0.8s linear infinite; }
   @keyframes s { to { transform: rotate(1turn); } }
   .count { color: var(--accent); font-size: 15px; min-width: 64px; }
+  /* Liquid theme: wet turquoise play drop, iridescent gold wordmark + countdown */
+  :global([data-theme="pour"]) .play { background: radial-gradient(circle at 32% 26%, #8be9df, #1fb5ad 48%, #0a6b70 100%); color: #04131c;
+    box-shadow: 0 0 0 6px rgba(31, 181, 173, .12), 0 8px 28px rgba(31, 181, 173, .26), inset 0 -3px 8px rgba(0, 0, 0, .25); }
+  :global([data-theme="pour"]) .brand b { background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 400; }
+  :global([data-theme="pour"]) .dot-orb { background: radial-gradient(circle at 35% 30%, #c9f2ec, #1fb5ad 40%, #0d2a44 85%);
+    box-shadow: 0 0 0 1px rgba(217, 180, 90, .45); }
+  :global([data-theme="pour"]) .count { color: var(--gold); }
   .offline { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); white-space: nowrap; }
   .offline i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
   .offline i.ready { background: var(--ok); box-shadow: 0 0 8px var(--ok); }

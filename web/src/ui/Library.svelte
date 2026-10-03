@@ -36,7 +36,7 @@
         <div class="gname">{i18n.category(g.name)}</div>
         {#each g.items as { p, user } (p.name + user)}
           {@const current = p.name === app.loadedName}
-          <div class="item" class:current style:--dot={band(p.band).color}>
+          <div class="item" class:current style:--dot={app.colorOf(band(p.band))}>
             <button class="load" aria-current={current ? 'true' : undefined} onclick={() => app.loadPreset(p)}
               aria-label={[i18n.name(p.name), label(p).replace('Hz', i18n.lang === 'zh' ? '赫兹' : 'hertz'), current ? t('lib.loaded') : ''].filter(Boolean).join(i18n.lang === 'zh' ? '，' : ', ')}
               title={i18n.description(p.name, p.description)}>
@@ -75,6 +75,7 @@
   .item:hover { background: var(--panel-hover); }
   .item.current { background: var(--accent-soft); }
   .item.current::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--accent); }
+  :global([data-theme="pour"]) .item.current::before { background: var(--gold-grad); }
   .load { flex: 1; display: flex; gap: 12px; align-items: center; padding: 8px 4px 8px 14px; min-height: 50px; text-align: left;
     background: none; border: 0; border-radius: 10px; }
   .load i { width: 8px; height: 8px; border-radius: 50%; background: var(--dot); flex: none;

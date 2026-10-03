@@ -95,3 +95,18 @@ app/settings.py   persisted preferences
 ## 9. Known gaps / next
 Only the Water ambience (river, sea) is bundled so far - rain & café still to come; un-hide the sidebar on
 narrow windows; installer (PyInstaller/MSIX); verify tray + WASAPI on real Windows.
+
+## Web: "Liquid" design (opt-in, pour-art)
+
+Inspired by acrylic pouring with Liquitex colours: **Prussian Blue Hue** (base), **Turquoise Deep**
+(interactive accent) and a trace of **Iridescent Bright Gold** (wordmark, current preset, countdown,
+orb glint).
+
+- **Background:** a procedural pour painting (domain-warped noise, `web/src/ui/pour.ts`) with wet
+  light-and-shadow shading (diffuse plus specular), rendered once per screen size.
+- **Panels:** resin glass with a lit top edge and a soft shadow.
+- **Orb:** a marbled pour cell swirling inside a glossy shell.
+- **Night use:** low luminance throughout; the e2e test checks that the painting's average luminance is below 70/255.
+
+Choose it in ⋯ → Design → Liquid, or open the preview link `?theme=pour`. Classic stays the default
+until approved. High contrast overrides both.

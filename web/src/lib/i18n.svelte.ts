@@ -31,7 +31,7 @@ const en = {
   'menu.export': 'Export preset file', 'menu.import': 'Import preset file', 'menu.hc': 'High contrast', 'menu.rm': 'Reduce motion',
   'menu.install': 'Install app', 'menu.installIos': 'Install on this iPhone', 'menu.iosHint': 'To install: tap Share, then “Add to Home Screen”',
   'menu.shortcuts': 'Keyboard shortcuts', 'menu.safety': 'Safety information', 'menu.privacy': 'Privacy: nothing leaves your device',
-  'menu.language': 'Language',
+  'menu.language': 'Language', 'menu.design': 'Design', 'design.classic': 'Classic', 'design.pour': 'Liquid',
   // library
   'lib.title': 'Library', 'lib.new': 'New custom session', 'lib.newTip': 'New custom session (N)', 'lib.close': 'Close library',
   'lib.search': 'Search presets', 'lib.loaded': 'loaded', 'lib.actions': 'Actions for {name}', 'lib.share': 'Share',
@@ -105,7 +105,7 @@ const zh: Record<Key, string> = {
   'menu.menu': '菜单', 'menu.save': '保存为预设', 'menu.new': '新建自定义会话', 'menu.share': '分享当前预设（链接）',
   'menu.export': '导出预设文件', 'menu.import': '导入预设文件', 'menu.hc': '高对比度', 'menu.rm': '减少动态效果',
   'menu.install': '安装应用', 'menu.installIos': '安装到这台 iPhone', 'menu.iosHint': '安装方法：点按“分享”，再选择“添加到主屏幕”',
-  'menu.shortcuts': '键盘快捷键', 'menu.safety': '安全须知', 'menu.privacy': '隐私：所有数据都留在你的设备上', 'menu.language': '语言',
+  'menu.shortcuts': '键盘快捷键', 'menu.safety': '安全须知', 'menu.privacy': '隐私：所有数据都留在你的设备上', 'menu.language': '语言', 'menu.design': '设计风格', 'design.classic': '经典', 'design.pour': '流体',
   'lib.title': '预设库', 'lib.new': '新建自定义会话', 'lib.newTip': '新建自定义会话（N）', 'lib.close': '关闭预设库',
   'lib.search': '搜索预设', 'lib.loaded': '已加载', 'lib.actions': '“{name}”的操作', 'lib.share': '分享',
   'lib.export': '导出', 'lib.delete': '删除', 'lib.none': '没有与“{q}”匹配的预设。',

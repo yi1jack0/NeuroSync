@@ -4,7 +4,7 @@ import presetsJson from '../generated/presets.json';
 import { Engine, type EngineState } from '../audio/engine';
 import { CATALOG, findSound, setLocalSoundLoader } from '../audio/buffers';
 import { canChooseOutput, listOutputDevices, type OutputDevice } from '../audio/platform';
-import { type Band, band, bandForFrequency, ORB_SPEEDS } from '../domain/bands';
+import { type Band, band, bandColorFor, bandForFrequency, ORB_SPEEDS } from '../domain/bands';
 import { gainToSlider, sliderToGain } from '../domain/limits';
 import {
   ASSET_PREFIX, binauralChannel, binauralOf, type ChannelConfig, clonePreset, LOCAL_PREFIX, parseChannel,
@@ -55,6 +55,9 @@ class AppState {
     return b ? bandForFrequency(b.beat_hz) : band(this.draft.band);
   });
   isPlaying = $derived(this.status === 'playing' || this.status === 'fading');
+  /** Band colour in the active design (Liquid uses a palette harmonised with Prussian blue). */
+  bandColor = $derived(bandColorFor(this.band, this.settings.theme));
+  colorOf = (b: Band) => bandColorFor(b, this.settings.theme);
   masterPct = $derived(this.muted ? 0 : gainToSlider(this.settings.masterVolume));
 
   private toastId = 0;
@@ -70,8 +73,13 @@ class AppState {
     if (announce) this.toast(t('ts.language'));
   }
 
+  setTheme(theme: 'classic' | 'pour') { this.settings.theme = theme; this.save(); }
+
   async init() {
     this.setLang(this.settings.lang || detectLang(), false);
+    // Preview link: ?theme=pour or ?theme=classic (saved, then removed from the address bar)
+    const qs = new URLSearchParams(location.search).get('theme');
+    if (qs === 'pour' || qs === 'classic') { this.setTheme(qs); history.replaceState(null, '', location.pathname + location.hash); }
     this.engine.subscribe(() => this.syncEngine());
     this.engine.setMaster(this.settings.masterVolume);
     if (this.settings.sinkId) void this.engine.setSink(this.settings.sinkId);

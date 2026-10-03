@@ -10,6 +10,12 @@ export const BANDS: readonly Band[] = [
   { name: 'GAMMA', label: 'Gamma', low: 30, high: 100, color: '#F7B955', category: 'Creativity' },
 ];
 
+/** Band colours tuned for the Liquid (pour-art) theme: harmonised with Prussian blue / turquoise / gold. */
+export const POUR_BAND_COLORS: Record<BandName, string> = {
+  DELTA: '#7C8CE0', THETA: '#8FB3E8', ALPHA: '#2EC4C0', BETA: '#6BD3A5', GAMMA: '#E3C066',
+};
+export const bandColorFor = (b: Band, theme: 'classic' | 'pour') => (theme === 'pour' ? POUR_BAND_COLORS[b.name] : b.color);
+
 export const CATEGORY_ORDER = ['Sleep', 'Meditate', 'Focus', 'Creativity'];
 
 export function band(name: BandName): Band {

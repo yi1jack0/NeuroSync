@@ -4,8 +4,10 @@
   // ~30 fps while playing; zero work when paused, hidden, off-screen or reduced-motion.
   import { ORB_SPEEDS, visualPulseHz } from '../domain/bands';
   import { t } from '../lib/i18n.svelte';
-  let { color, beat, playing, reduceMotion = false, flat = false, speed = 1 }:
-    { color: string; beat: number; playing: boolean; reduceMotion?: boolean; flat?: boolean; speed?: number } = $props();
+  import { marbleTexture, POUR } from './pour';
+  let { color, beat, playing, reduceMotion = false, flat = false, speed = 1, liquid = false }:
+    { color: string; beat: number; playing: boolean; reduceMotion?: boolean; flat?: boolean; speed?: number; liquid?: boolean } = $props();
+  let marble: HTMLCanvasElement | null = null;   // Liquid theme: painted once, rotated slowly
 
   let canvas: HTMLCanvasElement;
   let energy = 0, target = 0, raf = 0, last = 0, visible = true;
@@ -29,6 +31,7 @@
     if (!ctx) return;
     const dpr = Math.min(devicePixelRatio || 1, 2);
     const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (w < 8 || h < 8) return;                      // hidden (e.g. another phone tab is showing)
     if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
@@ -67,6 +70,7 @@
     }
     ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.arc(ox, oy, base * 1.9, 0, 7); ctx.stroke();
+    if (liquid) { drawLiquid(ctx, cx, cy, r, breath, t, c); return; }
     ctx.globalAlpha = 0.55 + 0.45 * energy;
     const core = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, 0, cx - r * 0.35, cy - r * 0.4, r * 1.5);
     core.addColorStop(0, rgba(mix(c, 0.75), 1)); core.addColorStop(0.45, rgba(c, 1)); core.addColorStop(1, rgba(mix(c, -0.7), 1));
@@ -81,6 +85,45 @@
     ctx.globalAlpha = 1;
   }
 
+  /** Liquid theme: a pour "cell" — marbled paint swirling inside a glossy drop, casting a soft shadow. */
+  function drawLiquid(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, breath: number, t: number,
+                      band: [number, number, number]) {
+    marble ??= marbleTexture(320);
+    const e = energy;
+    const sh = ctx.createRadialGradient(cx + r * 0.12, cy + r * 1.08, 0, cx + r * 0.12, cy + r * 1.08, r * 1.15);
+    sh.addColorStop(0, 'rgba(0,0,0,0.5)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = sh; ctx.beginPath(); ctx.ellipse(cx + r * 0.12, cy + r * 1.08, r * 1.15, r * 0.3, 0, 0, 7); ctx.fill();
+
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.clip();
+    ctx.translate(cx, cy);
+    ctx.rotate(t * 0.12);                       // slow swirl; follows the orb speed (drift clock)
+    const s = r * 2.9;
+    ctx.globalAlpha = 0.65 + 0.35 * e;
+    ctx.drawImage(marble, -s / 2, -s / 2, s, s);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+
+    const shade = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.42, r * 0.05, cx, cy, r * 1.02);
+    shade.addColorStop(0, 'rgba(255,255,255,0.10)');
+    shade.addColorStop(0.55, 'rgba(0,0,0,0)');
+    shade.addColorStop(1, 'rgba(2,8,16,0.78)');
+    ctx.fillStyle = shade; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill();
+
+    ctx.strokeStyle = rgba(band, 0.18 + 0.22 * breath * e); ctx.lineWidth = 2;           // band-tinted inner glow
+    ctx.beginPath(); ctx.arc(cx, cy, r - 2, 0, 7); ctx.stroke();
+    ctx.strokeStyle = rgba(rgb(POUR.turquoise), 0.35 + 0.25 * breath * e); ctx.lineWidth = 1.1;   // rim light
+    ctx.beginPath(); ctx.arc(cx, cy, r - 0.6, Math.PI * 0.95, Math.PI * 1.75); ctx.stroke();
+
+    const hx = cx - r * 0.38, hy = cy - r * 0.46;
+    const sp = ctx.createRadialGradient(hx, hy, 0, hx, hy, r * 0.34);
+    sp.addColorStop(0, 'rgba(232,246,252,0.34)'); sp.addColorStop(1, 'rgba(232,246,252,0)');
+    ctx.fillStyle = sp; ctx.beginPath(); ctx.ellipse(hx, hy, r * 0.34, r * 0.2, -0.6, 0, 7); ctx.fill();
+    const gold = rgb(POUR.gold);                                                          // a single gold glint
+    ctx.fillStyle = rgba(gold, 0.35 + 0.35 * e);
+    ctx.beginPath(); ctx.ellipse(cx + r * 0.46, cy + r * 0.5, r * 0.07, r * 0.035, -0.6, 0, 7); ctx.fill();
+  }
+
   function loop(now: number) {
     raf = 0;
     if (!visible || document.hidden) return;
@@ -90,7 +133,7 @@
   }
   const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
 
-  $effect(() => { target = playing ? 1 : 0; void color; void flat; void motion; kick(); });
+  $effect(() => { target = playing ? 1 : 0; void color; void flat; void motion; void liquid; kick(); });
   $effect(() => {
     const ro = new ResizeObserver(() => draw(performance.now()));
     const io = new IntersectionObserver(([e]) => { visible = !!e?.isIntersecting; kick(); });

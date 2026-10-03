@@ -7,14 +7,20 @@
   import Stage from './Stage.svelte';
   import Toasts from './Toasts.svelte';
   import TopBar from './TopBar.svelte';
+  import PourBackground from './PourBackground.svelte';
+  import { POUR } from './pour';
   import { i18n, t, type Key } from '../lib/i18n.svelte';
 
   $effect(() => {
     const root = document.documentElement;
     const forced = matchMedia('(prefers-contrast: more)').matches;
     root.classList.toggle('hc', app.settings.highContrast || forced);
-    root.style.setProperty('--accent', app.settings.highContrast ? '#FFFF00' : app.band.color);
-    document.querySelector('meta[name=theme-color]')?.setAttribute('content', app.settings.highContrast ? '#000000' : '#121417');
+    const pour = app.settings.theme === 'pour';
+    root.dataset.theme = app.settings.theme;
+    // Classic: the whole UI takes the band colour. Liquid: turquoise accent; band colour only marks the band.
+    root.style.setProperty('--accent', app.settings.highContrast ? '#FFFF00' : pour ? POUR.turquoise : app.bandColor);
+    root.style.setProperty('--band', app.settings.highContrast ? '#FFFF00' : app.bandColor);
+    document.querySelector('meta[name=theme-color]')?.setAttribute('content', app.settings.highContrast ? '#000000' : pour ? '#08131f' : '#121417');
   });
   // Android back gesture / browser back: close the open tab, drawer or dialog instead of leaving.
   let backEntry = false;
@@ -58,6 +64,7 @@
 </script>
 
 <svelte:window onkeydown={onKey} onpopstate={onPop} />
+{#if app.settings.theme === 'pour'}<PourBackground />{/if}
 <div class="aurora" aria-hidden="true"></div>
 <main class="app" data-tab={app.tab}>
   <TopBar />

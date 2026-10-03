@@ -39,7 +39,7 @@
   <p class="meta">{b ? t('st.meta', { base: b.base_hz, beat: b.beat_hz }) : t('st.ambienceOnly')}</p>
   <button class="orb" onclick={() => app.cycleOrbSpeed()} title={t('orb.tip')}
     aria-label={t('orb.label', { speed: t(`speed.${ORB_SPEEDS[app.settings.orbSpeed]?.name ?? 'Calm'}` as 'speed.Calm') })}>
-    <Orb color={app.settings.highContrast ? '#ffffff' : app.band.color} beat={b?.beat_hz ?? 1} playing={app.status === 'playing'}
+    <Orb color={app.settings.highContrast ? '#ffffff' : app.bandColor} liquid={app.settings.theme === 'pour'} beat={b?.beat_hz ?? 1} playing={app.status === 'playing'}
       reduceMotion={app.settings.reduceMotion} flat={app.settings.highContrast} speed={app.settings.orbSpeed} />
   </button>
   <p class="status" aria-live="polite">{status}</p>
@@ -48,7 +48,8 @@
 
 <style>
   .stage { display: flex; flex-direction: column; align-items: center; padding: 22px 8px 18px; text-align: center; position: relative; }
-  .chip { color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: 12px;
+  .chip { color: var(--band, var(--accent)); background: color-mix(in srgb, var(--band, var(--accent)) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--band, var(--accent)) 42%, transparent); border-radius: 12px;
     padding: 3px 12px; font-size: 12px; font-weight: 600; letter-spacing: 1px; }
   .title { font-size: 30px; font-weight: 300; margin-top: 12px; line-height: 1.2; }
   .edited { color: var(--dim); font-size: .8em; }
