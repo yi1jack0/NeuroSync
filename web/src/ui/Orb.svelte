@@ -1,5 +1,6 @@
 <script lang="ts">
-  // Breathing orb locked to the beat, folded down by octaves to <= 1.25 Hz (never a flicker).
+  // Breathing orb locked to the beat, folded down by octaves to a slow <= 0.6 Hz breath (never a
+  // flicker), floating on a slow, non-repeating drift with a wandering highlight.
   // ~30 fps while playing; zero work when paused, hidden, off-screen or reduced-motion.
   import { visualPulseHz } from '../domain/bands';
   let { color, beat, playing, reduceMotion = false, flat = false }:
@@ -8,7 +9,8 @@
   let canvas: HTMLCanvasElement;
   let energy = 0, target = 0, raf = 0, last = 0, visible = true;
   const t0 = performance.now();
-  const pulse = $derived(visualPulseHz(beat));
+  const pulse = $derived(visualPulseHz(beat, 0.6));      // e.g. 10 Hz beat -> one breath every 3.2 s
+  const TAU = Math.PI * 2;
   const motion = $derived(!reduceMotion && !(typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches));
 
   function rgb(hex: string): [number, number, number] {
@@ -32,14 +34,19 @@
     const breath = 0.5 - 0.5 * Math.cos(2 * Math.PI * phase);
     const base = Math.min(w, h) * 0.2;
     const r = base * (1 + 0.07 * breath * energy);
-    const cx = w / 2, cy = h / 2;
+    // Slow floating drift: two incommensurate periods (31 s / 23 s) so the path never visibly repeats.
+    const t = (now - t0) / 1000;
+    const drift = playing && motion ? Math.min(w, h) * 0.035 * energy : 0;
+    const cx = w / 2 + Math.sin((t * TAU) / 31) * drift;
+    const cy = h / 2 + Math.sin((t * TAU) / 23 + 1.3) * drift * 0.8;
+    const ox = w / 2, oy = h / 2;   // the faint orbit ring stays put: a calm frame of reference
     const c = rgb(color);
     if (flat) {   // high contrast: outlines only
       ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.stroke();
       ctx.lineWidth = 2; ctx.strokeStyle = '#ff0'; ctx.beginPath(); ctx.arc(cx, cy, r * (1 + 0.5 * breath * energy), 0, 7); ctx.stroke();
       return;
     }
-    const reach = Math.min(w, h) * 0.5;
+    const reach = Math.min(w, h) * 0.46;   // leaves room for the drift: the glow never hits the canvas edge
     const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, reach);
     glow.addColorStop(0, rgba(c, 0.1 + 0.22 * energy + 0.08 * breath * energy));
     glow.addColorStop(0.45, rgba(c, 0.03 + 0.1 * energy));
@@ -53,14 +60,18 @@
       }
     }
     ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(cx, cy, base * 1.9, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.arc(ox, oy, base * 1.9, 0, 7); ctx.stroke();
     ctx.globalAlpha = 0.55 + 0.45 * energy;
     const core = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, 0, cx - r * 0.35, cy - r * 0.4, r * 1.5);
     core.addColorStop(0, rgba(mix(c, 0.75), 1)); core.addColorStop(0.45, rgba(c, 1)); core.addColorStop(1, rgba(mix(c, -0.7), 1));
     ctx.fillStyle = core; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill();
-    const spec = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.4, 0, cx - r * 0.3, cy - r * 0.4, r * 0.55);
+    // Highlight wanders slowly across the glass (~40 s loop).
+    const sw = playing && motion ? energy : 0;
+    const hx = cx - r * (0.3 + 0.08 * Math.sin((t * TAU) / 40) * sw);
+    const hy = cy - r * (0.4 + 0.06 * Math.cos((t * TAU) / 40) * sw);
+    const spec = ctx.createRadialGradient(hx, hy, 0, hx, hy, r * 0.55);
     spec.addColorStop(0, 'rgba(255,255,255,.35)'); spec.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = spec; ctx.beginPath(); ctx.arc(cx - r * 0.3, cy - r * 0.38, r * 0.55, 0, 7); ctx.fill();
+    ctx.fillStyle = spec; ctx.beginPath(); ctx.arc(hx, hy + r * 0.02, r * 0.55, 0, 7); ctx.fill();
     ctx.globalAlpha = 1;
   }
 
