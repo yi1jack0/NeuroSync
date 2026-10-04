@@ -77,13 +77,11 @@ class AppState {
   /** Speaker mode avoids the beat-rate dropouts you get when both ears' tones mix in the air. */
   speakerMode = $derived(this.settings.listening ? this.settings.listening === 'speaker'
     : typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches);
-  private earphoneTipShown = false;
   setListening(mode: 'headphones' | 'speaker') {
     this.settings.listening = mode;
     this.save();
     this.engine.setSpeaker(mode === 'speaker');
-    haptic(8);
-    this.toast(t(mode === 'speaker' ? 'ts.speaker' : 'ts.headphones'));
+    haptic(8);                                       // no toast: the switch and reminder line show the state
   }
 
   setTheme(theme: 'classic' | 'pour') { this.settings.theme = theme; this.settings.themeChosen = true; this.save(); }
@@ -277,13 +275,7 @@ class AppState {
   // ------------------------------------------------------------------ transport
   async toggle() {
     if (this.dialog === 'disclaimer') return;           // no sound before the safety notice
-    const starting = !this.engine.isPlaying;
     await this.engine.toggle();
-    // once per visit: speaker mode is only a stand-in, the real effect needs earphones
-    if (starting && this.engine.isPlaying && this.speakerMode && !this.earphoneTipShown && binauralOf(this.draft)) {
-      this.earphoneTipShown = true;
-      this.toast(t('ts.useEarphones'));
-    }
   }
   stop() { void this.engine.stop(); }
   resumeAfterInterruption() { void this.engine.play(); }
@@ -317,9 +309,8 @@ class AppState {
   setPref<K extends 'highContrast' | 'reduceMotion'>(key: K, value: boolean) { this.settings[key] = value; this.save(); }
   cycleOrbSpeed() {
     this.settings.orbSpeed = (this.settings.orbSpeed + 1) % ORB_SPEEDS.length;
-    haptic(8);
+    haptic(8);                                       // the orb itself shows the new speed
     this.save();
-    this.toast(t('ts.orb', { name: t(`speed.${ORB_SPEEDS[this.settings.orbSpeed]!.name}`) }));
   }
   acceptDisclaimer() { this.settings.disclaimerAccepted = true; this.save(); this.dialog = 'none'; }
   async install() { await this.installPrompt?.prompt(); this.installPrompt = null; }

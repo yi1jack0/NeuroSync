@@ -98,10 +98,12 @@ test.describe('@s25 earphones reminder', () => {
     await expect(page.getByRole('radio', { name: 'Speaker' })).toHaveAttribute('aria-checked', 'true');
     await expect(reminder).toBeVisible();
     await page.getByRole('button', { name: 'Play' }).click();
-    await expect(page.getByText(/binaural beats need earphones/)).toBeVisible();   // one-time tip on play
     expect(await noOverflow(page)).toEqual([0, 0]);
     await page.getByRole('radio', { name: 'Headphones' }).click();
+    await page.getByRole('radio', { name: 'Speaker' }).click();
+    await page.getByRole('radio', { name: 'Headphones' }).click();
     await expect(reminder).toBeHidden();
+    await expect(page.locator('.toast, [class*=toast]').filter({ hasText: /mode|Orb|earphones/ })).toHaveCount(0);   // switching is quiet
     await page.reload();                                                          // choice remembered
     await expect(page.getByRole('radio', { name: 'Headphones' })).toHaveAttribute('aria-checked', 'true');
   });

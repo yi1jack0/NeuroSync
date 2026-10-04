@@ -68,9 +68,9 @@
     -webkit-tap-highlight-color: transparent; }
   .orb:focus-visible { outline: 2px solid var(--focus); outline-offset: -6px; }
   .status { color: var(--dim); }
-  .listen { display: inline-flex; gap: 2px; padding: 2px; margin-top: 8px; border-radius: 16px;
+  .listen { display: inline-flex; gap: 2px; padding: 2px; margin-top: 14px; border-radius: 16px;
     border: 1px solid var(--line, rgba(255,255,255,.12)); background: color-mix(in srgb, var(--surface, #111) 60%, transparent); }
-  .listen button { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 4px 12px; border: 0;
+  .listen button { display: inline-flex; align-items: center; gap: 5px; min-height: 38px; padding: 4px 14px; border: 0;
     border-radius: 14px; background: none; color: var(--dim); font: inherit; font-size: 12.5px; cursor: pointer; }
   .listen button[aria-checked='true'] { color: var(--text, #fff); background: color-mix(in srgb, var(--accent) 22%, transparent); }
   .reminder { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px;

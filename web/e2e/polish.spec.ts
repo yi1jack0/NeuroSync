@@ -118,15 +118,15 @@ test('clicking the orb cycles its speed (Calm -> Lively -> Slow), remembered acr
   const orb = page.getByRole('button', { name: /^Visualizer speed/ });
   await expect(orb).toHaveAccessibleName(/Calm/);
   await orb.click();
-  await expect(page.getByText('Orb speed: Lively')).toBeVisible();
+  await expect(orb).toHaveAccessibleName(/Lively/);
   await orb.click();
-  await expect(page.getByText('Orb speed: Slow')).toBeVisible();
   await expect(orb).toHaveAccessibleName(/Slow/);
+  await expect(page.getByText(/Orb speed/)).toHaveCount(0);        // no pop-up messages
   await page.reload();
   await expect(page.getByRole('button', { name: /^Visualizer speed: Slow/ })).toBeVisible();
   await page.getByRole('button', { name: /^Visualizer speed/ }).focus();
   await page.keyboard.press('Enter');                               // keyboard works too
-  await expect(page.getByText('Orb speed: Calm')).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Visualizer speed: Calm/ })).toBeVisible();
 });
 
 test.describe('Chinese (Simplified)', () => {
