@@ -55,7 +55,7 @@ test('speakers: speaker mode removes the beat-rate dropouts; headphones keep the
   for (const p of presets.filter((x) => x.channels.some((c) => c.kind === 'binaural'))) {
     // mono sum = what a phone speaker (or two speakers heard from afar) plays
     const spk = await page.evaluate((x) => (window as any).harness.analyze(x, 12, 0.5, true), p);
-    expect(depth(spk.envM), p.name).toBeLessThan(p.channels.length > 1 && p.channels.some((c) => c.kind === 'sample') ? 9 : 5);
+    expect(depth(spk.envM), p.name).toBeLessThan(8);         // was 11-20 dB dips before speaker mode
     const hp = await page.evaluate((x) => (window as any).harness.analyze(x, 12, 0.5, false), p);
     expect(depth(hp.envL), p.name).toBeLessThan(9);          // each ear is steady with headphones too
   }

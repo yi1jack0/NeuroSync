@@ -51,6 +51,7 @@
           <Icon name={icon} size={15} />{t(key)}</button>
       {/each}
     </div>
+    {#if app.speakerMode}<p class="reminder"><Icon name="headphones" size={14} />{t('ls.reminder')}</p>{/if}
   {/if}
   <p class="hint">{hint}</p>
 </section>
@@ -72,13 +73,16 @@
   .listen button { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 4px 12px; border: 0;
     border-radius: 14px; background: none; color: var(--dim); font: inherit; font-size: 12.5px; cursor: pointer; }
   .listen button[aria-checked='true'] { color: var(--text, #fff); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .reminder { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px;
+    color: var(--faint); font-size: 12.5px; line-height: 1.4; max-width: 34ch; }
+  .reminder :global(svg) { flex: none; color: var(--accent); }
   .listen button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   .hint { color: var(--faint); font-size: 12.5px; margin-top: 2px; }
   .banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 10px 14px;
     margin-bottom: 14px; border-radius: 12px; background: var(--surface); }
   @media (orientation: landscape) and (max-height: 500px) {
     /* info on the left, orb on the right: uses the wide, short screen */
-    .stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-rows: auto auto auto 1fr auto auto;
+    .stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-rows: auto auto auto 1fr auto auto auto;
       column-gap: 12px; align-items: center; padding: 4px; text-align: left; }
     .stage > :global(*) { grid-column: 1; }
     .chip { justify-self: start; grid-row: 2; }
@@ -86,7 +90,8 @@
     .meta { grid-row: 4; align-self: start; }
     .status { grid-row: 5; }
     .listen { grid-row: 6; justify-self: start; margin-top: 4px; }
-    .orb { grid-column: 2; grid-row: 1 / 7; height: 100%; min-height: 0; }
+    .reminder { grid-row: 7; justify-content: flex-start; margin-top: 4px; }
+    .orb { grid-column: 2; grid-row: 1 / 8; height: 100%; min-height: 0; }
     .banner { grid-row: 1; grid-column: 1 / 3; margin-bottom: 4px; }
   }
   @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {

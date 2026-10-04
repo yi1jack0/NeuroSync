@@ -77,6 +77,7 @@ class AppState {
   /** Speaker mode avoids the beat-rate dropouts you get when both ears' tones mix in the air. */
   speakerMode = $derived(this.settings.listening ? this.settings.listening === 'speaker'
     : typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches);
+  private earphoneTipShown = false;
   setListening(mode: 'headphones' | 'speaker') {
     this.settings.listening = mode;
     this.save();
@@ -276,7 +277,13 @@ class AppState {
   // ------------------------------------------------------------------ transport
   async toggle() {
     if (this.dialog === 'disclaimer') return;           // no sound before the safety notice
+    const starting = !this.engine.isPlaying;
     await this.engine.toggle();
+    // once per visit: speaker mode is only a stand-in, the real effect needs earphones
+    if (starting && this.engine.isPlaying && this.speakerMode && !this.earphoneTipShown && binauralOf(this.draft)) {
+      this.earphoneTipShown = true;
+      this.toast(t('ts.useEarphones'));
+    }
   }
   stop() { void this.engine.stop(); }
   resumeAfterInterruption() { void this.engine.play(); }

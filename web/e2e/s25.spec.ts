@@ -89,3 +89,20 @@ test('@s25 touch targets are at least 44 px', async ({ page }) => {
     expect(b!.height, tab).toBeGreaterThanOrEqual(44);
   }
 });
+
+test.describe('@s25 earphones reminder', () => {
+  test.use({ viewport: S25_ULTRA.viewport, hasTouch: true, isMobile: true });
+  test('phones start in speaker mode with an earphones reminder; Headphones hides it', async ({ page }) => {
+    await open(page);
+    const reminder = page.getByText('Put on earphones for the real binaural beat');
+    await expect(page.getByRole('radio', { name: 'Speaker' })).toHaveAttribute('aria-checked', 'true');
+    await expect(reminder).toBeVisible();
+    await page.getByRole('button', { name: 'Play' }).click();
+    await expect(page.getByText(/binaural beats need earphones/)).toBeVisible();   // one-time tip on play
+    expect(await noOverflow(page)).toEqual([0, 0]);
+    await page.getByRole('radio', { name: 'Headphones' }).click();
+    await expect(reminder).toBeHidden();
+    await page.reload();                                                          // choice remembered
+    await expect(page.getByRole('radio', { name: 'Headphones' })).toHaveAttribute('aria-checked', 'true');
+  });
+});
