@@ -3,13 +3,15 @@
 // browser throttles timers in a background tab. Pause suspends the context, which also
 // freezes the clock: the remaining time pauses with it for free.
 import { type ChannelConfig, type Preset } from '../domain/preset';
-import { Bus, cancelFade, outputChain, type OutputChain, scheduleFadeOut, setMaster } from './graph';
+import { Bus, cancelFade, outputChain, type OutputChain, rampDuck, scheduleFadeOut, setMaster } from './graph';
 import { declarePlaybackSession, type OutputMode, preferredOutputMode } from './platform';
 
 export type EngineState = 'idle' | 'loading' | 'playing' | 'paused' | 'fading' | 'stopped';
 
-const CROSSFADE_S = 0.35;
-const PAUSE_RAMP_S = 0.12;
+const CROSSFADE_S = 2;          // switching presets while playing
+const START_FADE_S = 3;         // fade-in when a session starts
+const RESUME_FADE_S = 1.5;      // fade-in after a pause
+const PAUSE_FADE_S = 1.2;       // fade-out before the context is suspended
 
 type Listener = () => void;
 type SinkCapable = { setSinkId?: (id: string) => Promise<void> };
@@ -30,6 +32,7 @@ export class Engine {
   private remainingAtPause: number | null = null;
   private element: HTMLAudioElement | null = null;
   private sinkId = '';
+  private speaker = false;
   private listeners = new Set<Listener>();
   private loadToken = 0;
 
@@ -79,6 +82,7 @@ export class Engine {
     return ctx;
   }
   private pausing = false;
+  private pauseToken = 0;
 
   // ------------------------------------------------------------------ preset
   /** Load (or switch to) a preset. While playing, the old one crossfades out. */
@@ -89,7 +93,7 @@ export class Engine {
     const ctx = this.ctx;
     let next: Bus;
     try {
-      next = await Bus.build(ctx, preset);
+      next = await Bus.build(ctx, preset, this.speaker);
     } catch (e) {
       this.error = String(e instanceof Error ? e.message : e);
       this.emit();
@@ -121,6 +125,12 @@ export class Engine {
   async addChannel(cfg: ChannelConfig) { await this.bus?.add(cfg); }
   removeChannel(index: number) { this.bus?.remove(index); }
 
+  /** true = speaker-safe binaural (no dropouts through speakers); false = headphones. */
+  setSpeaker(on: boolean) {
+    this.speaker = on;
+    this.bus?.setSpeaker(on);
+  }
+
   setMaster(value: number) {
     this.master = value;
     if (this.ctx && this.chain) setMaster(this.chain, value, this.ctx.currentTime);
@@ -141,6 +151,8 @@ export class Engine {
     const ctx = this.ensureContext();
     this.interrupted = false;
     this.error = '';
+    let fadeS = RESUME_FADE_S;
+    let from: number | undefined;                  // undefined = wherever a pause fade left it
     if (this.state === 'stopped' || !this.bus) {
       this.set('loading');
       this.endAt = null;
@@ -154,28 +166,29 @@ export class Engine {
       const bus = this.bus as Bus | null;          // set by load()
       if (!bus) { this.set('idle'); return; }
       bus.start(ctx.currentTime);
+      fadeS = START_FADE_S;
+      from = 0;
     } else {
       await ctx.resume();
     }
     if (this.element) await this.element.play().catch(() => undefined);
-    const t = ctx.currentTime;
-    this.chain!.duck.gain.cancelScheduledValues(t);
-    this.chain!.duck.gain.setValueAtTime(this.chain!.duck.gain.value, t);
-    this.chain!.duck.gain.linearRampToValueAtTime(1, t + PAUSE_RAMP_S);
+    rampDuck(this.chain!, 1, ctx.currentTime, fadeS, from);
     this.set('playing');
     this.armTimer();
   }
 
   async pause(): Promise<void> {
     if (!this.ctx || !this.chain || this.state !== 'playing') return;
-    const t = this.ctx.currentTime;
     this.pausing = true;
-    this.remainingAtPause = this.remaining;
-    this.chain.duck.gain.setValueAtTime(this.chain.duck.gain.value, t);
-    this.chain.duck.gain.linearRampToValueAtTime(0, t + PAUSE_RAMP_S);
+    const token = ++this.pauseToken;
+    rampDuck(this.chain, 0, this.ctx.currentTime, PAUSE_FADE_S);
     this.set('paused');
-    await new Promise((r) => setTimeout(r, PAUSE_RAMP_S * 1000 + 30));
-    if ((this.state as EngineState) === 'paused') await this.ctx.suspend();   // freezes the clock and saves CPU
+    await new Promise((r) => setTimeout(r, PAUSE_FADE_S * 1000 + 60));
+    if (token !== this.pauseToken) return;          // resumed and paused again meanwhile
+    if ((this.state as EngineState) === 'paused') {
+      await this.ctx.suspend();                    // freezes the clock and saves CPU
+      this.remainingAtPause = this.remaining;      // the fade-out above counted as listening time
+    }
     this.pausing = false;
   }
 

@@ -84,6 +84,9 @@ const en = {
   'ts.noSoundStorage': 'This browser cannot store sounds (private mode?)', 'ts.added': 'Added {name}', 'ts.removed': 'Removed {name}',
   'ts.output': 'Output: {name}', 'ts.outputFail': "Couldn't switch output device", 'ts.orb': 'Orb speed: {name}',
   'ts.audioError': 'Audio problem: {msg}', 'ts.language': 'Language: English',
+  'ls.label': 'Listening on', 'ls.headphones': 'Headphones', 'ls.speaker': 'Speaker',
+  'ts.speaker': 'Speaker mode: a soft pulse instead of the binaural beat, so the sound never drops out.',
+  'ts.headphones': 'Headphones mode: the true binaural beat (each ear hears its own tone).',
   // misc
   'title.idle': 'NeuroSync — Tune your mind', 'title.playing': '▶ {name} · NeuroSync', 'untitled': 'Untitled session',
   'customSession': 'Custom session',
@@ -153,6 +156,9 @@ const zh: Record<Key, string> = {
   'ts.noSoundStorage': '此浏览器无法存储声音（是否处于无痕模式？）', 'ts.added': '已添加{name}', 'ts.removed': '已移除{name}',
   'ts.output': '输出：{name}', 'ts.outputFail': '无法切换输出设备', 'ts.orb': '光球速度：{name}',
   'ts.audioError': '音频出现问题：{msg}', 'ts.language': '语言：简体中文',
+  'ls.label': '收听方式', 'ls.headphones': '耳机', 'ls.speaker': '扬声器',
+  'ts.speaker': '扬声器模式：用柔和的脉动代替双耳节拍，声音不会再断断续续。',
+  'ts.headphones': '耳机模式：真正的双耳节拍（左右耳各听一个音）。',
   'title.idle': 'NeuroSync — 调频你的心', 'title.playing': '▶ {name} · NeuroSync', 'untitled': '未命名会话',
   'customSession': '自定义会话',
 };

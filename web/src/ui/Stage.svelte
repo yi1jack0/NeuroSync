@@ -2,6 +2,7 @@
   import { app } from '../state/app.svelte';
   import { binauralOf } from '../domain/preset';
   import Orb from './Orb.svelte';
+  import Icon from './Icon.svelte';
   import { ORB_SPEEDS } from '../domain/bands';
   import { fmtTime } from './format';
   import { i18n, t } from '../lib/i18n.svelte';
@@ -43,6 +44,14 @@
       reduceMotion={app.settings.reduceMotion} flat={app.settings.highContrast} speed={app.settings.orbSpeed} />
   </button>
   <p class="status" aria-live="polite">{status}</p>
+  {#if b}
+    <div class="listen" role="radiogroup" aria-label={t('ls.label')}>
+      {#each [['headphones', 'headphones', 'ls.headphones'], ['speaker', 'speaker', 'ls.speaker']] as const as [id, icon, key] (id)}
+        <button role="radio" aria-checked={app.speakerMode === (id === 'speaker')} onclick={() => app.setListening(id)}>
+          <Icon name={icon} size={15} />{t(key)}</button>
+      {/each}
+    </div>
+  {/if}
   <p class="hint">{hint}</p>
 </section>
 
@@ -58,19 +67,26 @@
     -webkit-tap-highlight-color: transparent; }
   .orb:focus-visible { outline: 2px solid var(--focus); outline-offset: -6px; }
   .status { color: var(--dim); }
+  .listen { display: inline-flex; gap: 2px; padding: 2px; margin-top: 8px; border-radius: 16px;
+    border: 1px solid var(--line, rgba(255,255,255,.12)); background: color-mix(in srgb, var(--surface, #111) 60%, transparent); }
+  .listen button { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 4px 12px; border: 0;
+    border-radius: 14px; background: none; color: var(--dim); font: inherit; font-size: 12.5px; cursor: pointer; }
+  .listen button[aria-checked='true'] { color: var(--text, #fff); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .listen button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   .hint { color: var(--faint); font-size: 12.5px; margin-top: 2px; }
   .banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 10px 14px;
     margin-bottom: 14px; border-radius: 12px; background: var(--surface); }
   @media (orientation: landscape) and (max-height: 500px) {
     /* info on the left, orb on the right: uses the wide, short screen */
-    .stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-rows: auto auto auto 1fr auto;
+    .stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-rows: auto auto auto 1fr auto auto;
       column-gap: 12px; align-items: center; padding: 4px; text-align: left; }
     .stage > :global(*) { grid-column: 1; }
     .chip { justify-self: start; grid-row: 2; }
     .title { font-size: 22px; margin-top: 6px; grid-row: 3; }
     .meta { grid-row: 4; align-self: start; }
     .status { grid-row: 5; }
-    .orb { grid-column: 2; grid-row: 1 / 6; height: 100%; min-height: 0; }
+    .listen { grid-row: 6; justify-self: start; margin-top: 4px; }
+    .orb { grid-column: 2; grid-row: 1 / 7; height: 100%; min-height: 0; }
     .banner { grid-row: 1; grid-column: 1 / 3; margin-bottom: 4px; }
   }
   @media (max-width: 767px), (orientation: landscape) and (max-height: 500px) {

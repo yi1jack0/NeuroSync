@@ -1,6 +1,6 @@
 // Test-only page (not in the production build): renders the real graph offline so
 // Playwright can measure what users would hear.
-import { Bus, outputChain, scheduleFadeOut } from '../src/audio/graph';
+import { Bus, outputChain, rampDuck, scheduleFadeOut } from '../src/audio/graph';
 import { parsePreset } from '../src/domain/preset';
 import { Engine } from '../src/audio/engine';
 
@@ -100,5 +100,45 @@ async function pauseFreezesTimer() {
   return { a, b, c, state: engine.state };
 }
 
-Object.assign(window, { harness: { renderPreset, renderFade, runTimer, pauseFreezesTimer } });
+/** Smoothness report: 20 ms RMS envelopes of each ear and of the mono sum (what a phone
+ *  speaker plays), plus the largest sample-to-sample jump (clicks). */
+async function analyze(raw: unknown, seconds: number, master: number, speaker = false) {
+  const ctx = new OfflineAudioContext(2, Math.round(seconds * SR), SR);
+  const chain = outputChain(ctx, master);
+  chain.limiter.connect(ctx.destination);
+  const bus = await Bus.build(ctx, parsePreset(raw), speaker);
+  bus.gain.connect(chain.master);
+  bus.start(0);
+  const out = await ctx.startRendering();
+  const L = out.getChannelData(0), R = out.getChannelData(1);
+  const M = L.map((v, i) => (v + R[i]!) / 2);
+  const step = SR / 50;
+  const env = (x: Float32Array) => { const e: number[] = []; for (let i = SR; i + step <= x.length; i += step) e.push(rms(x.subarray(i, i + step))); return e; };
+  let jump = 0;
+  for (let i = SR + 1; i < L.length; i++) jump = Math.max(jump, Math.abs(L[i]! - L[i - 1]!), Math.abs(R[i]! - R[i - 1]!));
+  return { envL: env(L), envR: env(R), envM: env(M), jump };
+}
+
+/** Start fade-in (0 -> 1 over `inS`), then a pause fade begun mid-way through a resume:
+ *  returns the 10 ms RMS envelope and the largest sample-to-sample jump. */
+async function renderDuck(inS: number, pauseAt: number, pauseS: number, seconds: number) {
+  const ctx = new OfflineAudioContext(1, Math.round(seconds * SR), SR);
+  const chain = outputChain(ctx, 0.85);
+  chain.limiter.connect(ctx.destination);
+  const osc = ctx.createOscillator(); osc.frequency.value = 200;
+  const g = ctx.createGain(); g.gain.value = 0.5;
+  osc.connect(g).connect(chain.master); osc.start(0);
+  rampDuck(chain, 1, 0, inS, 0);
+  // the turnaround must start from the level the ramp has reached at pauseAt
+  const reached = Math.min(pauseAt / inS, 1);
+  rampDuck(chain, 0, pauseAt, pauseS, reached);
+  const out = (await ctx.startRendering()).getChannelData(0);
+  const step = SR / 100, env: number[] = [];
+  for (let i = 0; i + step <= out.length; i += step) env.push(rms(out.subarray(i, i + step)));
+  let jump = 0;
+  for (let i = 1; i < out.length; i++) jump = Math.max(jump, Math.abs(out[i]! - out[i - 1]!));
+  return { env, jump };
+}
+
+Object.assign(window, { harness: { analyze, renderDuck, renderPreset, renderFade, runTimer, pauseFreezesTimer } });
 document.title = 'harness ready';

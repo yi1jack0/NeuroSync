@@ -74,6 +74,17 @@ class AppState {
     if (announce) this.toast(t('ts.language'));
   }
 
+  /** Speaker mode avoids the beat-rate dropouts you get when both ears' tones mix in the air. */
+  speakerMode = $derived(this.settings.listening ? this.settings.listening === 'speaker'
+    : typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches);
+  setListening(mode: 'headphones' | 'speaker') {
+    this.settings.listening = mode;
+    this.save();
+    this.engine.setSpeaker(mode === 'speaker');
+    haptic(8);
+    this.toast(t(mode === 'speaker' ? 'ts.speaker' : 'ts.headphones'));
+  }
+
   setTheme(theme: 'classic' | 'pour') { this.settings.theme = theme; this.settings.themeChosen = true; this.save(); }
 
   async init() {
@@ -83,6 +94,7 @@ class AppState {
     if (qs === 'pour' || qs === 'classic') { this.setTheme(qs); history.replaceState(null, '', location.pathname + location.hash); }
     this.engine.subscribe(() => this.syncEngine());
     this.engine.setMaster(this.settings.masterVolume);
+    this.engine.setSpeaker(this.speakerMode);
     if (this.settings.sinkId) void this.engine.setSink(this.settings.sinkId);
     setLocalSoundLoader((id) => idbGet<Blob>('sounds', id));
     try { this.user = (await idbGetAll<unknown>('presets')).map(parsePreset).sort((a, b) => a.name.localeCompare(b.name)); }

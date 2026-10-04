@@ -49,6 +49,34 @@ test('every built-in preset renders sound (incl. bundled ambience)', async ({ pa
   }
 });
 
+test('speakers: speaker mode removes the beat-rate dropouts; headphones keep the true binaural beat', async ({ page }) => {
+  await harness(page);
+  const depth = (e: number[]) => 20 * Math.log10(Math.max(...e) / Math.max(Math.min(...e), 1e-6));
+  for (const p of presets.filter((x) => x.channels.some((c) => c.kind === 'binaural'))) {
+    // mono sum = what a phone speaker (or two speakers heard from afar) plays
+    const spk = await page.evaluate((x) => (window as any).harness.analyze(x, 12, 0.5, true), p);
+    expect(depth(spk.envM), p.name).toBeLessThan(p.channels.length > 1 && p.channels.some((c) => c.kind === 'sample') ? 9 : 5);
+    const hp = await page.evaluate((x) => (window as any).harness.analyze(x, 12, 0.5, false), p);
+    expect(depth(hp.envL), p.name).toBeLessThan(9);          // each ear is steady with headphones too
+  }
+  const r = await page.evaluate(() => (window as any).harness.renderPreset(
+    { name: 't', band: 'ALPHA', channels: [{ kind: 'binaural', name: 'b', base_hz: 200, beat_hz: 10, volume: 0.5 }] }, 3, 0.85));
+  expect(r.domL).toBeGreaterThan(199); expect(r.domL).toBeLessThan(201);   // headphones: still exact per ear
+  expect(r.domR).toBeGreaterThan(209); expect(r.domR).toBeLessThan(211);
+});
+
+test('start fades in over 3 s and a pause can turn it around without a click', async ({ page }) => {
+  await harness(page);
+  const { env, jump } = await page.evaluate(() => (window as any).harness.renderDuck(3, 2, 1.2, 4));
+  const full = 0.5 * 0.85 / Math.SQRT2;
+  expect(env[0]).toBeLessThan(full * 0.01);                         // starts silent
+  expect(env[50]).toBeLessThan(full * 0.12);                        // gentle start (x^2 curve)
+  for (let i = 1; i <= 195; i++) expect(env[i]).toBeGreaterThanOrEqual(env[i - 1] * 0.98 - 1e-6);   // rising
+  for (let i = 205; i <= 318; i++) expect(env[i]).toBeLessThanOrEqual(env[i - 1] * 1.02 + 1e-6);   // falling
+  expect(Math.max(...env.slice(322))).toBeLessThan(full * 0.002);  // silent after the pause fade
+  expect(jump).toBeLessThan(0.02);                                   // no clicks (200 Hz tone alone moves ~0.016/sample)
+});
+
 test('fade-out is logarithmic, monotonic and never shorter than 3 s', async ({ page }) => {
   await harness(page);
   const { end, env } = await page.evaluate(() => (window as any).harness.renderFade(0.5, 1, 6));

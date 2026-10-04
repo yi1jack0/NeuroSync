@@ -10,6 +10,7 @@
     plus: '<path d="M12 6v12M6 12h12"/>', close: '<path d="M7 7l10 10M17 7 7 17"/>',
     volume: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11"/>',
     mute: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15 9.5l5 5M20 9.5l-5 5"/>',
+    speaker: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18 6.5a7.5 7.5 0 0 1 0 11"/>',
     headphones: '<path d="M4 16a8 8 0 0 1 16 0"/><rect x="3.5" y="12" width="4" height="7" rx="1.5"/><rect x="16.5" y="12" width="4" height="7" rx="1.5"/>',
     wave: '<path d="M3 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0"/>', noise: '<path d="M5 8v8M8 6v12M11 9v6M14 5v14M17 8v8M20 10v4"/>',
     orb: '<circle cx="12" cy="12" r="6" fill="currentColor"/>', file: '<path d="M6 3.5h8l4.5 4.5v12.5H6z"/><path d="M14 3.5V8h4.5"/>',
